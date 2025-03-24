@@ -38,8 +38,8 @@ def main(dailytimer: func.TimerRequest) -> None:
     end_time = now
 
     # Variables for number of tweets per page and number of pages
-    max_results = 100
-    num_pages = 6
+    max_results = 10
+    num_pages = 1
 
     paginator = tweepy.Paginator(
         twitter_client.search_recent_tweets,
