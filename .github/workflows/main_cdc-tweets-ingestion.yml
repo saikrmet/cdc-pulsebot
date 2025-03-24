@@ -16,6 +16,7 @@ on:
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'tweets-ingestion-app' # set this to the path to your web app project, defaults to the repository root
   PYTHON_VERSION: '3.12' # set this to the python version to use (supports 3.6, 3.7, 3.8)
+  RESOURCE_GROUP: 'cdc-tweets-analysis'
 
 jobs:
   build:
@@ -65,15 +66,27 @@ jobs:
           name: python-app
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip     
-        
-      - name: 'Deploy to Azure Functions'
-        uses: Azure/functions-action@v1
-        id: deploy-to-function
+        run: unzip release.zip  
+
+      - name: Azure Login
+        uses: azure/login@v1
         with:
-          app-name: 'cdc-tweets-ingestion'
-          slot-name: 'Production'
-          package: '.'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2210C2C6C6FD459EA7A2D1A5B461FB40 }}
-          sku: 'flexconsumption'
+          creds: ${{ secrets.AZURE_CREDENTIALS }}   
+
+      - name: Deploy to Azure Function App using CLI
+        run: |
+          az functionapp deployment source config-zip \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --src release.zip
+        
+      # - name: 'Deploy to Azure Functions'
+      #   uses: Azure/functions-action@v1
+      #   id: deploy-to-function
+      #   with:
+      #     app-name: 'cdc-tweets-ingestion'
+      #     slot-name: 'Production'
+      #     package: '.'
+      #     publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2210C2C6C6FD459EA7A2D1A5B461FB40 }}
+      #     sku: 'flexconsumption'
         
