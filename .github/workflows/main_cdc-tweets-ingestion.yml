@@ -46,15 +46,13 @@ jobs:
       # Optional: Add step to run tests here
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+        run: zip -r release.zip . -x "*.git*" ".venv/*" "__pycache__/*"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: |
-            release.zip
-            !venv/
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -75,7 +73,7 @@ jobs:
         with:
           app-name: 'cdc-tweets-ingestion'
           slot-name: 'Production'
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          package: '.'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2210C2C6C6FD459EA7A2D1A5B461FB40 }}
           sku: 'flexconsumption'
         
