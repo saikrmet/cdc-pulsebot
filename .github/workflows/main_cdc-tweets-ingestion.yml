@@ -8,6 +8,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'tweets-ingestion-app/**'
+      - '.github/workflows/main_cdc-tweets-ingestion.yml'
   workflow_dispatch:
 
 env:
