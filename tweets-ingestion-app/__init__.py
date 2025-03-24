@@ -25,7 +25,7 @@ def main(dailytimer: func.TimerRequest) -> None:
 
     credential = DefaultAzureCredential()
 
-    keyvault_uri = os.environ["KEY_VAULT_URL"]
+    keyvault_uri = os.environ["KEY_VAULT_URI"]
     keyvault_client = SecretClient(vault_url=keyvault_uri, 
                                    credential=credential)
 
