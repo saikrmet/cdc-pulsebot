@@ -69,21 +69,16 @@ jobs:
         run: unzip release.zip  
 
       - name: Azure Login
-        uses: azure/login@v2
+        uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}   
+          creds: ${{ secrets.AZURE_SP_CREDENTIALS }}   
 
       - name: Deploy to Azure Function App using CLI
-        uses: azure/cli@v2
-        with:
-          azcliversion: latest
-          inlineScript: |
-            az functionapp deployment source config-zip \
-              --resource-group ${{ env.RESOURCE_GROUP }} \
-              --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
-              --src release.zip
+        run: |
+          az functionapp deployment source config-zip \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --src release.zip
         
       # - name: 'Deploy to Azure Functions'
       #   uses: Azure/functions-action@v1
