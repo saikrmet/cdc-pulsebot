@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'tweets-ingestion-app' # set this to the path to your web app project, defaults to the repository root
+  AZURE_FUNCTIONAPP_NAME: 'tweets-ingestion-app' # set this to the path to your web app project, defaults to the repository root
   PYTHON_VERSION: '3.12' # set this to the python version to use (supports 3.6, 3.7, 3.8)
   RESOURCE_GROUP: 'cdc-tweets-analysis'
 
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+        working-directory: ${{ env.AZURE_FUNCTIONAPP_NAME }}
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -53,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/release.zip
+          path: ${{ env.AZURE_FUNCTIONAPP_NAME }}/release.zip
 
   deploy:
     runs-on: ubuntu-latest
