@@ -149,7 +149,7 @@
                     "magnitude": {
                         "boostingRangeStart": 10,
                         "boostingRangeEnd": 100,
-                        "shouldBoostBeyondRangeByConstant": true
+                        "constantBoostBeyondRange": true
                     }
                 }
             ]
@@ -191,7 +191,7 @@
                 "name": "openai-ada-002",
                 "kind": "azureOpenAI",
                 "azureOpenAIParameters": {
-                    "resourceUri": "https://ai-cdctweetsanalysishub115739202326.cognitiveservices.azure.com/openai/deployments/cdc-tweets-embedding-ada-002/embeddings?api-version=2023-05-15",
+                    "resourceUri": "https://ai-cdctweetsanalysishub115739202326.openai.azure.com/",
                     "deploymentID": "cdc-tweets-embedding-ada-002",
                     "modelName": "text-embedding-ada-002"
                 }
@@ -218,12 +218,12 @@
             {
                 "name": "semantic-config",
                 "prioritizedFields": {
-                    "contentFields": [
+                    "prioritizedContentFields": [
                         {
                             "fieldName": "text"
                         }
                     ],
-                    "keywordFields": [
+                    "prioritizedKeywordsFields": [
                         {
                             "fieldName": "keyPhrases"
                         },

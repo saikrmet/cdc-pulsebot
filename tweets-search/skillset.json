@@ -10,7 +10,7 @@
             "inputs": [
                 {
                     "name": "text",
-                    "source": "/document/merged_content"
+                    "source": "/document/text"
                 }
             ],
             "outputs": [
@@ -84,32 +84,14 @@
             ],
             "outputs": [
                 {
-                    "name": "linkedEntities",
-                    "targetName": "linkedEntitiesRaw"
-                }
-            ]
-        },
-        {
-            "@odata.type": "#Microsoft.Skills.Util.ShaperSkill",
-            "name": "linked-entities-shaper",
-            "description": "Compound type for canonical names and URLs from linked entities",
-            "context": "/document/linkedEntitiesRaw/*",
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "name",
-                    "targetName": "linked_entities"
-                },
-                {
-                    "name": "url",
-                    "targetName": "linked_entity_urls"
+                    "name": "entities",
+                    "targetName": "linkedEntities"
                 }
             ]
         }
     ],
     "cognitiveServices": {
-        "@odata.type": "#Microsoft.Azure.Search.CognitiveServicesByResource",
-        "resourceId": "/subscriptions/6e7c57fc-5b54-4e81-9fc9-cfae2472c1e3/resourceGroups/cdc-tweets-analysis/providers/Microsoft.CognitiveServices/accounts/ai-cdctweetsanalysishub115739202326"
+        "@odata.type": "#Microsoft.Azure.Search.DefaultCognitiveServices"
     }
 }
   
