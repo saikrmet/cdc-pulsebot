@@ -1,0 +1,16 @@
+{
+    "name": "cdc-tweets-datasource",
+    "type": "azureblob",
+    "container": {
+      "name": "tweets"
+    },
+    "dataChangeDetectionPolicy": {
+      "@odata.type": "#Microsoft.Azure.Search.HighWaterMarkChangeDetectionPolicy",
+      "highWaterMarkColumnName": "metadata_storage_last_modified"
+    },
+    "credentials": {
+      "connectionString": "ResourceId=/subscriptions/6e7c57fc-5b54-4e81-9fc9-cfae2472c1e3/resourceGroups/cdc-tweets-analysis/providers/Microsoft.Storage/storageAccounts/cdctweetsdeveus;"
+    },
+    "description": "Container for json file containing tweet chunks with incremental indexing"
+}
+  

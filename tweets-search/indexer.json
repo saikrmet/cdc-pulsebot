@@ -1,0 +1,78 @@
+{
+    "name": "cdc-tweets-indexer",
+    "dataSourceName": "cdc-tweets-datasource",
+    "targetIndexName": "cdc-tweets-index",
+    "skillsetName": "cdc-tweets-skillset",
+    "parameters": {
+        "maxFailedItems": -1,
+        "maxFailedItemsPerBatch": -1,
+        "configuration": {
+            "dataToExtract": "contentAndMetadata",
+            "parsingMode": "jsonArray"
+        }
+    },
+    "cache": {
+        "enableReprocessing": false,
+        "identity": {
+            "@odata.type": "#Microsoft.Azure.Search.DataNoneIdentity"
+        }, 
+        "storageConnectionString": "ResourceId=/subscriptions/6e7c57fc-5b54-4e81-9fc9-cfae2472c1e3/resourceGroups/cdc-tweets-analysis/providers/Microsoft.Storage/storageAccounts/cdctweetsdeveus;"
+
+    },
+    "fieldMappings": [
+        {
+            "sourceFieldName": "id",
+            "targetFieldName": "id"
+        },
+        {
+            "sourceFieldName": "text",
+            "targetFieldName": "text"
+        },
+        {
+            "sourceFieldName": "chunk_index",
+            "targetFieldName": "chunk_index"
+        },
+        {
+            "sourceFieldName": "created_at",
+            "targetFieldName": "created_at"
+        },
+        {
+            "sourceFieldName": "author_id",
+            "targetFieldName": "author_id"
+        },
+        {
+            "sourceFieldName": "conversation_id",
+            "targetFieldName": "conversation_id"
+        },
+        {
+            "sourceFieldName": "source_url",
+            "targetFieldName": "source_url"
+        },
+        {
+            "sourceFieldName": "popularity_score",
+            "targetFieldName": "popularity_score"
+        }
+    ],
+    "outputFieldMappings": [
+        {
+            "sourceFieldName": "/document/language",
+            "targetFieldName": "language"
+        },
+        {
+            "sourceFieldName": "/document/sentiment",
+            "targetFieldName": "sentiment"
+        },
+        {
+            "sourceFieldName": "/document/keyPhrases",
+            "targetFieldName": "keyPhrases"
+        },
+        {
+            "sourceFieldName": "/document/linkedEntities/*/name",
+            "targetFieldName": "linked_entities"
+        },
+        {
+            "sourceFieldName": "/document/linkedEntities/*/url",
+            "targetFieldName": "linked_entity_urls"
+        }
+    ]
+}
