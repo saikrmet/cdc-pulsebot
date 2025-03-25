@@ -1,0 +1,115 @@
+{
+    "name": "cdc-tweets-skillset",
+    "description": "Enrichment pipeline for cdc-tweets-index",
+    "skills": [
+        {
+            "@odata.type": "#Microsoft.Skills.Text.LanguageDetectionSkill",
+            "name": "detect-language",
+            "description": "Detects the language of tweet text",
+            "context": "/document",
+            "inputs": [
+                {
+                    "name": "text",
+                    "source": "/document/merged_content"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "languageCode",
+                    "targetName": "language"
+                }
+            ]
+        },
+        {
+            "@odata.type": "#Microsoft.Skills.Text.KeyPhraseExtractionSkill",
+            "name": "extract-key-phrases",
+            "description": "Extract key phrases from tweet text",
+            "context": "/document",
+            "inputs": [
+                {
+                    "name": "text",
+                    "source": "/document/text"
+                },
+                {
+                    "name": "languageCode",
+                    "source": "/document/language"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "keyPhrases",
+                    "targetName": "keyPhrases"
+                }
+            ]
+        },
+        {
+            "@odata.type": "#Microsoft.Skills.Text.V3.SentimentSkill",
+            "name": "get-sentiment",
+            "description": "Extract sentiment from tweet text",
+            "context": "/document",
+            "includeOpinionMining": true,
+            "inputs": [
+                {
+                    "name": "text",
+                    "source": "/document/text"
+                }, 
+                {
+                    "name": "languageCode",
+                    "source": "/document/language"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "sentiment",
+                    "targetName": "sentiment"
+                }
+            ]
+        },
+        {
+            "@odata.type": "#Microsoft.Skills.Text.V3.EntityLinkingSkill",
+            "name": "link-entities",
+            "description": "Link named entities to canonical knowledge base entries",
+            "context": "/document",
+            "defaultLanguageCode": "en", 
+            "minimumPrecision": 0.5,
+            "inputs": [
+                {
+                    "name": "text",
+                    "source": "/document/text"
+                },
+                {
+                    "name": "languageCode",
+                    "source": "/document/language"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "linkedEntities",
+                    "targetName": "linkedEntitiesRaw"
+                }
+            ]
+        },
+        {
+            "@odata.type": "#Microsoft.Skills.Util.ShaperSkill",
+            "name": "linked-entities-shaper",
+            "description": "Compound type for canonical names and URLs from linked entities",
+            "context": "/document/linkedEntitiesRaw/*",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "name",
+                    "targetName": "linked_entities"
+                },
+                {
+                    "name": "url",
+                    "targetName": "linked_entity_urls"
+                }
+            ]
+        }
+    ],
+    "cognitiveServices": {
+        "@odata.type": "#Microsoft.Azure.Search.CognitiveServicesByResource",
+        "resourceId": "/subscriptions/6e7c57fc-5b54-4e81-9fc9-cfae2472c1e3/resourceGroups/cdc-tweets-analysis/providers/Microsoft.CognitiveServices/accounts/ai-cdctweetsanalysishub115739202326"
+    }
+}
+  
