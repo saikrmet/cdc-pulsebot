@@ -116,8 +116,8 @@ def main(dailytimer: func.TimerRequest) -> None:
                 }
             )
 
-    blob_url = keyvault_client.get_secret("BLOB_URL").value
-    blob_container = keyvault_client.get_secret("BLOB_CONTAINER_NAME").value
+    blob_url = keyvault_client.get_secret("TWEETS-BLOB-URL").value
+    blob_container = keyvault_client.get_secret("TWEETS-BLOB-CONTAINER").value
     blob_path = "{}/cdc-chunks.json".format(now.date())
 
     blob_service = BlobServiceClient(account_url=blob_url, credential=credential)
