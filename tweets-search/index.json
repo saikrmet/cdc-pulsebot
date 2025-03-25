@@ -1,0 +1,192 @@
+{
+    "name": "cdc-tweets-index",
+    "fields": [
+      {
+        "name": "id",
+        "type": "Edm.String",
+        "key": true,
+        "retrievable": true
+      },
+      {
+        "name": "text",
+        "type": "Edm.String",
+        "searchable": true,
+        "retrievable": true
+      },
+      {
+        "name": "chunk_index",
+        "type": "Edm.Int32",
+        "retrievable": true
+      },
+      {
+        "name": "created_at",
+        "type": "Edm.DateTimeOffset",
+        "filterable": true,
+        "retrievable": true,
+        "sortable": true, 
+        "facetable": true
+      },
+      {
+        "name": "author_id",
+        "type": "Edm.String",
+        "filterable": true,
+        "retrievable": true
+      },
+      {
+        "name": "conversation_id",
+        "type": "Edm.String",
+        "filterable": true,
+        "retrievable": true
+      },
+      {
+        "name": "source_url",
+        "type": "Edm.String",
+        "retrievable": true
+      },
+      {
+        "name": "popularity_score",
+        "type": "Edm.Double",
+        "filterable": true,
+        "sortable": true,
+        "retrievable": true
+      },
+      {
+        "name": "language",
+        "type": "Edm.String",
+        "filterable": true,
+        "retrievable": true,
+        "facetable": true
+      },
+      {
+        "name": "sentiment",
+        "type": "Edm.String",
+        "filterable": true,
+        "facetable": true,
+        "retrievable": true
+      },
+      {
+        "name": "keyPhrases",
+        "type": "Collection(Edm.String)",
+        "searchable": true,
+        "retrievable": true
+      },
+      {
+        "name": "linked_entities",
+        "type": "Collection(Edm.String)",
+        "searchable": true,
+        "filterable": true,
+        "facetable": true
+      },
+      {
+        "name": "linked_entity_urls",
+        "type": "Collection(Edm.String)",
+        "searchable": false,
+        "filterable": false,
+        "facetable": false
+      },
+      {
+        "name": "embedding",
+        "type": "Collection(Edm.Single)",
+        "searchable": true,
+        "retrievable": true,
+        "dimensions": 1536,
+        "vectorSearchProfile": "hnsw-profile"
+      }
+    ],
+    "scoringProfiles": [
+        {
+            "name": "popularityScoring",
+            "text": {
+                "weights": {
+                    "text": 3,
+                    "keyPhrases": 2
+                }
+            },
+            "functions": [
+                {
+                    "type": "magnitude",
+                    "fieldName": "popularity_score",
+                    "boost": 1.5,
+                    "interpolation": "linear",
+                    "magnitude": {
+                        "boostingRangeStart": 10,
+                        "boostingRangeEnd": 100,
+                        "shouldBoostBeyondRangeByConstant": true
+                    }
+                }
+            ]
+        }
+    ],
+    "suggesters": [
+      {
+        "name": "sg",
+        "searchMode": "analyzingInfixMatching",
+        "sourceFields": ["keyPhrases", "linked_entities"]
+      }
+    ],
+
+    "vectorSearch": {
+        "profiles": [
+            {
+                "name": "hnsw-profile",
+                "algorithm": "cosine-algo",
+                "vectorizer": "openai-ada-002",
+                "compression": "scalarquant"
+            }
+        ], 
+
+        "algorithms": [
+            {
+                "name": "cosine-algo",
+                "kind": "hnsw",
+                "hnswParameters": {
+                    "m": 4,
+                    "efConstruction": 400,
+                    "efSearch": 500, 
+                    "metric": "cosine"
+                } 
+            }
+        ], 
+        "vectorizers": [
+            {
+                "name": "openai-ada-002", 
+                "kind": "azureOpenAI",
+                "azureOpenAIParameters": {
+                    "resourceUri": "https://ai-cdctweetsanalysishub115739202326.cognitiveservices.azure.com/openai/deployments/cdc-tweets-embedding-ada-002/embeddings?api-version=2023-05-15",
+                    "deploymentID": "cdc-tweets-embedding-ada-002",
+                    "modelName": "text-embedding-ada-002"
+                }
+            }
+        ], 
+        "compressions": [
+            {
+                "name": "scalarquant",
+                "kind": "scalarQuantization",
+                "scalarQuantizationParameters": {
+                    "quantizedDataType": "int8"
+                },
+                "rescoringOptions": {
+                    "enableRescoring": true,
+                    "defaultOversampling": 10,
+                    "rescoreStorageMethod": "preserveOriginals"
+                },
+                "truncationDimension": 2
+            }
+        ]
+
+    },
+    "semantic": {
+      "configurations": [
+        {
+          "name": "semantic-config",
+          "prioritizedFields": {
+            "contentFields": [
+              { "fieldName": "text" },
+              { "fieldName": "merged_text" }
+            ]
+          }
+        }
+      ]
+    }
+}
+  
