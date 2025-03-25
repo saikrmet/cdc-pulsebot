@@ -124,7 +124,6 @@
         "sourceFields": ["keyPhrases", "linked_entities"]
       }
     ],
-
     "vectorSearch": {
         "profiles": [
             {
@@ -173,7 +172,6 @@
                 "truncationDimension": 2
             }
         ]
-
     },
     "semantic": {
       "configurations": [
@@ -181,8 +179,11 @@
           "name": "semantic-config",
           "prioritizedFields": {
             "contentFields": [
-              { "fieldName": "text" },
-              { "fieldName": "merged_text" }
+                { "fieldName": "text" }
+            ], 
+            "keywordFields": [
+                { "fieldName": "keyPhrases" }, 
+                { "fieldName": "linked_entities"}
             ]
           }
         }
