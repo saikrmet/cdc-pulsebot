@@ -192,8 +192,8 @@
                 "kind": "azureOpenAI",
                 "azureOpenAIParameters": {
                     "resourceUri": "https://ai-cdctweetsanalysishub115739202326.openai.azure.com/",
-                    "deploymentID": "cdc-tweets-embedding-ada-002",
-                    "modelName": "text-embedding-ada-002"
+                    "deploymentID": "text-embedding-3-small-7K-TPMRL",
+                    "modelName": "text-embedding-3-small"
                 }
             }
         ],
