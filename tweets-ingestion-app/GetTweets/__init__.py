@@ -100,7 +100,7 @@ def main(dailytimer: func.TimerRequest) -> None:
         logging.info("Error running indexer {}".format(indexer_name))
 
 
-def get_chunked_tweets(tweets: list[str], chunk_size: int, 
+def get_chunked_tweets(tweets: list[any], chunk_size: int, 
                        chunk_overlap: int, encoding_model: str) -> list[str]:
     """Function that returns tweet chunks from the list of tweets
 
@@ -140,7 +140,7 @@ def get_chunked_tweets(tweets: list[str], chunk_size: int,
         tweet_text = getattr(tweet, "text", None)
         if tweet_text is None:
             continue
-        chunking_result = chunk_text(text=tweet.text, chunk_size=chunk_size,
+        chunking_result = chunk_text(text=tweet_text, chunk_size=chunk_size,
                                            chunk_overlap=chunk_overlap, 
                                            encoding_model=encoding_model)
 
@@ -153,7 +153,7 @@ def get_chunked_tweets(tweets: list[str], chunk_size: int,
                     "created_at": tweet.created_at.isoformat(),
                     "author_id": tweet.author_id,
                     "conversation_id": getattr(tweet, "conversation_id", None),
-                    "source_url": f"https://twitter.com/i/web/status/{tweet.id}",
+                    "source_url": f"https://twitter.com/i/web/status/{tweet_id}",
                     "popularity_score": score_tweet(tweet),
                     "ingestion_date": now.isoformat()
                     # "hashtags": hashtags_cleaned,
