@@ -64,6 +64,7 @@ def main(dailytimer: func.TimerRequest) -> None:
     
     logging.info("Pulled {} on {}.".format(len(all_tweets), 
                                         now.strftime("%B %d, %Y")))
+    logging.info(all_tweets)
     
     top_tweets = get_top_n_tweets(all_tweets=all_tweets, n=num_top_tweets)
 
@@ -175,7 +176,7 @@ def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[st
     Returns:
         - list[str]: list of tweets
     """
-    twitter_client = tweepy.Client(bearer_token=twitter_token, wait_on_rate_limt=True)
+    twitter_client = tweepy.Client(bearer_token=twitter_token, wait_on_rate_limit=True)
 
     # Logic for current day 
     start_time = now - timedelta(days=1)
