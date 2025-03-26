@@ -10,7 +10,7 @@ from azure.keyvault.secrets import SecretClient
 from azure.storage.blob import BlobServiceClient
 from azure.search.documents.indexes import SearchIndexerClient
 import tweepy
-from chunking import chunk_text, generate_chunk_id
+from .chunking import chunk_text, generate_chunk_id
 
 # Frozen now for timestamp
 now = datetime.now()
