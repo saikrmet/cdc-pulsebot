@@ -175,7 +175,7 @@ def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[st
     Returns:
         - list[str]: list of tweets
     """
-    twitter_client = tweepy.Client(bearer_token=twitter_token)
+    twitter_client = tweepy.Client(bearer_token=twitter_token, wait_on_rate_limt=True)
 
     # Logic for current day 
     start_time = now - timedelta(days=1)
