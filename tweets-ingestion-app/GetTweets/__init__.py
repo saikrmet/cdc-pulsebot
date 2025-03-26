@@ -10,6 +10,7 @@ from azure.keyvault.secrets import SecretClient
 from azure.storage.blob import BlobServiceClient
 from azure.search.documents.indexes import SearchIndexerClient
 import tweepy
+from tweepy import 
 from .chunking import chunk_text, generate_chunk_id
 
 # Frozen now for timestamp
@@ -227,7 +228,7 @@ def score_tweet(tweet) -> int:
     return score
 
 
-def get_top_n_tweets(all_tweets: list[str], n: int) -> list[str]:
+def get_top_n_tweets(all_tweets: list[str], n: int) -> list[any]:
     """Gets the top n tweets sorted by their popularity score computed 
     using the tweet's public metrics.
 
@@ -238,6 +239,6 @@ def get_top_n_tweets(all_tweets: list[str], n: int) -> list[str]:
     Returns:
         - list[str]: top n tweets based on popularity score
     """
-    scored_all_tweets = sorted(iterable=all_tweets, key=score_tweet, 
+    scored_all_tweets = sorted(all_tweets, key=score_tweet, 
                                reverse=True) 
     return scored_all_tweets[:n] 
