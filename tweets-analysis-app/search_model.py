@@ -6,7 +6,7 @@ from azure.identity import DefaultAzureCredential
 from azure.core.credentials import AzureKeyCredential
 from aiocache import cached
 
-from schemas.dashboard import DashboardData, PopularTweet
+from schemas.dashboard import DashboardData, PopularTweet, EntityObj
 
 credential = DefaultAzureCredential()
 keyvault_uri = os.environ["KEY_VAULT_URI"]
@@ -80,13 +80,18 @@ async def query_dashboard_data(start_date: str, end_date: str) -> DashboardData:
         num_tweets = 5
 
         # Get list of tuples for view
-        top_n_entities = sorted(iterable=entity_counts.items(), 
+        top_n_entities_raw = sorted(iterable=entity_counts.items(), 
                                 key=lambda x: x[1], reverse=True)[:num_entities]
         top_n_phrases = sorted(iterable=phrase_counts.items(), 
                                 key=lambda x: x[1], reverse=True)[:num_phrases]
         top_n_tweets = sorted(iterable=popular_tweets, 
                                 key=lambda x: x.popularity_score, 
                                 reverse=True)[:num_tweets]
+        
+        top_n_entities: List[EntityObj] = []
+
+        for (entity, url), count in top_n_entities_raw:
+            top_n_entities.append(EntityObj(name=entity, url=url, count=count))
         
         return DashboardData(
             language = language_counts,

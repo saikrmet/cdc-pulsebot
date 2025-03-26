@@ -16,3 +16,8 @@ class DashboardData(BaseModel):
     key_phrases: List[Tuple[str, int]]
     popular_tweets: List[PopularTweet]
 
+class EntityObj(BaseModel):
+    name: str
+    url: str
+    count: int
+
