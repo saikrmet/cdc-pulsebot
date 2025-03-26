@@ -13,7 +13,7 @@ import tweepy
 from .chunking import chunk_text, generate_chunk_id
 
 # Frozen now for timestamp
-now = datetime.now()
+now = datetime.now(timezone.utc)
 
 def main(dailytimer: func.TimerRequest) -> None:
     """Function that pulls tweets about the Centers for Disease Control 
@@ -30,7 +30,7 @@ def main(dailytimer: func.TimerRequest) -> None:
 
     # The number of total tweets pulled is equal to max_results x num_pages
     # Variable for number of tweets per page
-    max_results = 5
+    max_results = 10
 
     # Variable for number of pages
     num_pages = 1
@@ -178,7 +178,7 @@ def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[st
     twitter_client = tweepy.Client(bearer_token=twitter_token)
 
     # Logic for current day 
-    start_time = now - timedelta(1)
+    start_time = now - timedelta(days=1)
     end_time = now
 
     paginator = tweepy.Paginator(
