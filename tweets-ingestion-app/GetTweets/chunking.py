@@ -29,6 +29,7 @@ def chunk_text(text: str, chunk_size: int, chunk_overlap: int,
     documents = splitter.create_documents([text])
     for doc in documents:
         chunk_list.append(doc.page_content)
+    return chunk_list
 
 def count_tokens(text: str, encoding_model: str) -> int:
     """Function to count the expected number of tokens necessary to embed the
