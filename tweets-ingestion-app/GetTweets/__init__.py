@@ -66,11 +66,11 @@ def main(dailytimer: func.TimerRequest) -> None:
                                         now.strftime("%B %d, %Y")))
     logging.info(all_tweets)
     
-    top_tweets = get_top_n_tweets(all_tweets=all_tweets, n=num_top_tweets)
+    #top_tweets = get_top_n_tweets(all_tweets=all_tweets, n=num_top_tweets)
 
-    logging.info("Got top {} tweets".format(num_top_tweets))
+    #logging.info("Got top {} tweets".format(num_top_tweets))
 
-    chunks = get_chunked_tweets(tweets=top_tweets, chunk_size=chunk_size, 
+    chunks = get_chunked_tweets(tweets=all_tweets, chunk_size=chunk_size, 
                                 chunk_overlap=chunk_overlap, 
                                 encoding_model=encoding_model)
     logging.info("Chunked top {} tweets into {} total chunks"
@@ -141,6 +141,10 @@ def get_chunked_tweets(tweets: list[any], chunk_size: int,
         tweet_text = getattr(tweet, "text", None)
         if tweet_text is None:
             continue
+
+        if getattr(tweet, "possibly_sensitive", False):
+            continue
+        
         chunking_result = chunk_text(text=tweet_text, chunk_size=chunk_size,
                                            chunk_overlap=chunk_overlap, 
                                            encoding_model=encoding_model)
@@ -164,7 +168,7 @@ def get_chunked_tweets(tweets: list[any], chunk_size: int,
 
     return chunks
 
-def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[str]:
+def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[any]:
     """Function that pulls (max_results x num_pages) tweets containing "CDC" 
     from the last 24 hours
 
@@ -184,9 +188,10 @@ def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[st
 
     paginator = tweepy.Paginator(
         twitter_client.search_recent_tweets,
-        query="CDC -is:retweet lang:en",
+        query="(CDC OR \"Centers for Disease Control\" OR \"Centers for Disease Control and Prevention\" \
+                OR @CDCgov OR #CDC) -is:retweet -is:nullcast -is:quote -is:reply",
         tweet_fields=["id", "text", "created_at", "author_id", "entities", 
-                      "conversation_id", "public_metrics"], 
+                      "possibly_sensitive", "conversation_id", "public_metrics"], 
         start_time=start_time.isoformat(),
         end_time=end_time.isoformat(), 
         max_results=max_results
