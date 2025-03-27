@@ -11,14 +11,6 @@
             "parsingMode": "jsonArray"
         }
     },
-    "cache": {
-        "enableReprocessing": false,
-        "identity": {
-            "@odata.type": "#Microsoft.Azure.Search.DataNoneIdentity"
-        }, 
-        "storageConnectionString": "ResourceId=/subscriptions/6e7c57fc-5b54-4e81-9fc9-cfae2472c1e3/resourceGroups/cdc-tweets-analysis/providers/Microsoft.Storage/storageAccounts/cdctweetsdeveus;"
-
-    },
     "fieldMappings": [
         {
             "sourceFieldName": "id",
@@ -73,6 +65,10 @@
         {
             "sourceFieldName": "/document/linkedEntities/*/url",
             "targetFieldName": "linked_entity_urls"
+        }, 
+        {
+            "sourceFieldName": "/document/embedding/*",
+            "targetFieldName": "text_vector"
         }
     ]
 }

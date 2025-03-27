@@ -88,7 +88,29 @@
                     "targetName": "linkedEntities"
                 }
             ]
+        },
+        {
+            "@odata.type": "#Microsoft.Skills.Text.AzureOpenAIEmbeddingSkill",
+            "description": "Embedding skill",
+            "resourceUri": "https://openai-cdc-tweets-analysis-dev-eus.openai.azure.com",
+            "deploymentId": "text-embedding-3-small-8KTPM",
+            "modelName": "text-embedding-3-small",
+            "context": "/document",
+            "dimensions": 1536,
+            "inputs": [
+                {
+                    "name": "text",
+                    "source": "/document/text"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "embedding", 
+                    "targetName": "embedding"
+                }
+            ]
         }
+
     ],
     "cognitiveServices": {
         "@odata.type": "#Microsoft.Azure.Search.DefaultCognitiveServices"

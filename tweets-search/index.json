@@ -120,7 +120,7 @@
             "retrievable": true
         },
         {
-            "name": "embedding",
+            "name": "text_vector",
             "type": "Collection(Edm.Single)",
             "searchable": true,
             "filterable": false,
@@ -166,33 +166,33 @@
         }
     ],
     "vectorSearch": {
-        "profiles": [
-            {
-                "name": "hnsw-profile",
-                "algorithm": "cosine-algo",
-                "vectorizer": "openai-ada-002",
-                "compression": "scalarquant"
-            }
-        ],
         "algorithms": [
             {
                 "name": "cosine-algo",
                 "kind": "hnsw",
                 "hnswParameters": {
+                    "metric": "cosine",
                     "m": 4,
                     "efConstruction": 400,
-                    "efSearch": 500,
-                    "metric": "cosine"
+                    "efSearch": 500
                 }
+            }
+        ],
+        "profiles": [
+            {
+                "name": "hnsw-profile",
+                "algorithm": "cosine-algo",
+                "vectorizer": "openai-embedding-3-small",
+                "compression": "scalarquant"
             }
         ],
         "vectorizers": [
             {
-                "name": "openai-ada-002",
+                "name": "openai-embedding-3-small",
                 "kind": "azureOpenAI",
                 "azureOpenAIParameters": {
-                    "resourceUri": "https://ai-cdctweetsanalysishub115739202326.openai.azure.com/",
-                    "deploymentID": "text-embedding-3-small-7K-TPMRL",
+                    "resourceUri": "https://openai-cdc-tweets-analysis-dev-eus.openai.azure.com",
+                    "deploymentId": "text-embedding-3-small-8KTPM",
                     "modelName": "text-embedding-3-small"
                 }
             }
@@ -201,6 +201,7 @@
             {
                 "name": "scalarquant",
                 "kind": "scalarQuantization",
+                "truncationDimension": 2,
                 "scalarQuantizationParameters": {
                     "quantizedDataType": "int8"
                 },
@@ -208,8 +209,7 @@
                     "enableRescoring": true,
                     "defaultOversampling": 10,
                     "rescoreStorageMethod": "preserveOriginals"
-                },
-                "truncationDimension": 2
+                }
             }
         ]
     },
