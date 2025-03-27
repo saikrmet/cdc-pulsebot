@@ -22,7 +22,7 @@ def chunk_text(text: str, chunk_size: int, chunk_overlap: int,
         separators=["\n\n", "\n", ".", " ", ""], 
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap, 
-        length_function=count_tokens(text, encoding_model)
+        length_function=lambda t: count_tokens(t, encoding_model)
         )
 
     chunk_list = []
