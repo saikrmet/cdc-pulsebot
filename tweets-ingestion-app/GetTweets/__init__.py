@@ -21,10 +21,11 @@ def main(dailytimer: func.TimerRequest) -> None:
     storage, and run indexer.
 
     Parameters:
-        - dailytimer: trigger that defines how often to run function app
+        dailytimer (func.TimerRequest): The trigger that defines
+            how often to run function app
 
     Returns:
-        - None
+        None
     """
     # Function variables
 
@@ -103,17 +104,16 @@ def main(dailytimer: func.TimerRequest) -> None:
 
 def get_chunked_tweets(tweets: list[any], chunk_size: int, 
                        chunk_overlap: int, encoding_model: str) -> list[str]:
-    """Function that returns tweet chunks from the list of tweets
+    """Function that returns tweet chunks from the list of tweets.
 
-    Paramaters:
-        - tweets: the list of tweets
-        - chunk_size: the number of tokens per chunk
-        - chunk_overlap: the number of token overlap between chunks of the
-        same tweet
-        - encoding_model: the name of the model used to compute tokens from text
+    Parameters:
+        tweets (list[any]): The list of tweets
+        chunk_size (int): The number of tokens per chunk
+        chunk_overlap (int): The number of token overlap between chunks of the same tweet
+        encoding_model (str): The name of the model used to compute tokens from text
 
     Returns:
-        - list[str]: the list of chunks
+        list[str]: The list of chunks
     """
     # # For future enrichment 
     # hashtags_cleaned = []
@@ -169,16 +169,16 @@ def get_chunked_tweets(tweets: list[any], chunk_size: int,
     return chunks
 
 def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[any]:
-    """Function that pulls (max_results x num_pages) tweets containing "CDC" 
-    from the last 24 hours
+    """Function that pulls (max_results x num_pages) tweets related to the CDC 
+    from the last 24 hours.
 
-    Paramaters:
-        - twitter_token: bearer token for tweepy
-        - max_results: the number of tweets to return per page
-        - num_pages: the number of tweet pages to return
+    Parameters:
+        twitter_token (str): The bearer token for tweepy
+        max_results (int): The number of tweets to return per page
+        num_pages (int): The number of tweet pages to return
 
     Returns:
-        - list[str]: list of tweets
+        list[str]: The list of tweets
     """
     twitter_client = tweepy.Client(bearer_token=twitter_token, wait_on_rate_limit=True)
 
@@ -210,15 +210,15 @@ def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[an
     return all_tweets
 
 
-def score_tweet(tweet) -> int:
+def score_tweet(tweet: any) -> int:
     """Function that calculates a tweet's popularity score using public 
     metrics of the tweet.
 
     Parameters:
-        - tweet: the tweet object returned by twitter_client
+        tweet (any): The tweet object returned by twitter_client
 
     Returns:
-        - int: popularity score or 0 if public_metrics does not exist
+        int: The popularity score or 0 if public_metrics does not exist
     """
     metrics = getattr(tweet, "public_metrics")
 
@@ -233,16 +233,16 @@ def score_tweet(tweet) -> int:
     return score
 
 
-def get_top_n_tweets(all_tweets: list[str], n: int) -> list[any]:
+def get_top_n_tweets(all_tweets: list[any], n: int) -> list[any]:
     """Gets the top n tweets sorted by their popularity score computed 
     using the tweet's public metrics.
 
     Parameters:
-        - all_tweets: the list of all tweets returned by pull_tweets
-        - n: the number of top tweets to return
+        all_tweets (list[any]): The list of all tweets returned by pull_tweets
+        n: The number of top tweets to return
 
     Returns:
-        - list[str]: top n tweets based on popularity score
+        list[any]: The top n tweets based on popularity score
     """
     scored_all_tweets = sorted(all_tweets, key=score_tweet, 
                                reverse=True) 

@@ -8,13 +8,13 @@ def chunk_text(text: str, chunk_size: int, chunk_overlap: int,
     """Function to produce list of chunks from input text.
 
     Parameters:
-        - text: input text from tweet (None checks in main)
-        - chunk_size: number of tokens per chunk
-        - chunk_overlap: number of token overlap between chunks
-        - encoding_model: name of model used to compute number of tokens
+        text (str): input text from tweet (None checks in main)
+        chunk_size (int): The number of tokens per chunk
+        chunk_overlap (int): The number of token overlap between chunks
+        encoding_model (str): The name of model used to compute number of tokens
 
     Returns:
-        - list[str]: array of chunks corresponding to the input text
+        list[str]: The array of chunks corresponding to the input text
     """
 
     splitter = RecursiveCharacterTextSplitter(
@@ -35,12 +35,12 @@ def count_tokens(text: str, encoding_model: str) -> int:
     """Function to count the expected number of tokens necessary to embed the
     input text. 
 
-    Paramaters:
-        - text: input string
-        - encoding_model: the name of the encoding model to compute tokens
+    Parameters:
+        text (str): The input string
+        encoding_model (str): The name of the encoding model to compute tokens
     
     Returns:
-        - int: number of expected tokens to embed text
+        int: number of expected tokens to embed text
     """
 
     tokenizer = tiktoken.encoding_for_model(encoding_model)
@@ -58,4 +58,4 @@ def generate_chunk_id(id: int, text: str) -> str:
         - str: unique id using hash to compute 10 digit encoding of text
     """
 
-    return "{}-{}".format(hashlib.sha256(text.encode()).hexdigest()[:10])
+    return "{}-{}".format(id, hashlib.sha256(text.encode()).hexdigest()[:10])
