@@ -31,7 +31,7 @@ def main(dailytimer: func.TimerRequest) -> None:
 
     # The number of total tweets pulled is equal to max_results x num_pages
     # Variable for number of tweets per page
-    max_results = 10
+    max_results = 20
 
     # Variable for number of pages
     num_pages = 1
