@@ -1,10 +1,4 @@
 from .constants import LANGUAGE_MAP
-
-def is_positive(value: int) -> int: 
-    if value <= 1:
-        raise ValueError("{} is not a valid integer".format(value))
-    return value
-
 def valid_sentiment_label(sentiment: str) -> str:
     sentimentLabels = {"positive", "neutral", "negative"}
     sentiment = sentiment.strip().lower()

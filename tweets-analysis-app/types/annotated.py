@@ -1,9 +1,9 @@
 from .validators import is_positive, valid_sentiment_label, get_language_label
 
 from typing import Annotated
-from pydantic import AfterValidator
+from pydantic import AfterValidator, Field
 
-PositiveCount = Annotated[int, AfterValidator(is_positive)]
+PositiveCount = Annotated[int, Field(gt=0)]
 SentimentLabel = Annotated[str, AfterValidator(valid_sentiment_label)]
-SentimentScore = Annotated[int, AfterValidator(is_positive)]
+SentimentScore = Annotated[float, Field(gt=0)]
 LanguageLabel = Annotated[str, AfterValidator(get_language_label)]

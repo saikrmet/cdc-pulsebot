@@ -26,17 +26,17 @@ class LanguageCountObj(BaseModel):
     language: LanguageLabel
     count: PositiveCount
 
-# Model for count by keyword
-class KeywordCountObj(BaseModel):
-    keyword: str
-    count: PositiveCount
+# # Model for count by keyword
+# class KeywordCountObj(BaseModel):
+#     keyword: str
+#     count: PositiveCount
 
-# Model for input to GenAI consolidation
-class RawKeywordsObj(BaseModel):
-    data: List[KeywordCountObj]
+# # Model for input to GenAI consolidation
+# class RawKeywordsObj(BaseModel):
+#     data: List[KeywordCountObj]
 
-class CleanKeywordsObj(BaseModel):
-    data: List[KeywordCountObj]
+# class CleanKeywordsObj(BaseModel):
+#     data: List[KeywordCountObj]
 
 # Model for count by linked entity
 class EntityCountObj(BaseModel):
@@ -60,7 +60,7 @@ class DashboardData(BaseModel):
     date_sentiment_scores: List[DateSentimentScoreObj]
     language_counts: List[LanguageCountObj]
     entity_counts: List[EntityCountObj]
-    keyword_counts: CleanKeywordsObj
+    # keyword_counts: CleanKeywordsObj
     popular_tweets: List[PopularTweet]
 
 
