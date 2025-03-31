@@ -36,10 +36,13 @@ caches.set_config(
 )
 
 
+
+
 @app.get("/")
 async def home():
     logger.info("Redirect to dashboard")
     return RedirectResponse(url="/dashboard")
+
 
 
 @app.get("/dashboard", response_class=HTMLResponse)

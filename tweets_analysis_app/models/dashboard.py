@@ -1,8 +1,9 @@
 from pydantic import BaseModel
 from typing import Dict, List, Tuple
 from datetime import datetime, date
-from types.annotated import PositiveCount, SentimentLabel, SentimentScore, \
+from tweets_analysis_app.types.annotated import PositiveCount, SentimentLabel, SentimentScore, \
     LanguageLabel
+
 
 
     
