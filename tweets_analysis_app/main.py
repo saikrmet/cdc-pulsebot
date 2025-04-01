@@ -1,26 +1,42 @@
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Request, Query, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from typing import Optional
 from datetime import datetime, timedelta
 from aiocache import caches
+from contextlib import asynccontextmanager
 import logging
-
+from pathlib import Path
+from tweets_analysis_app.clients import AzureClients, set_azure_clients
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("aiocache").setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-from services.dashboard_service import get_dashboard_data
-from models.dashboard import DashboardData
+from tweets_analysis_app.services.dashboard_service import get_dashboard_data
+from tweets_analysis_app.models.dashboard import DashboardData
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    azure_clients = AzureClients()
+    await azure_clients.init_clients()
+    set_azure_clients(azure_clients)
+    logger.info("Initiated Azure clients")
+    yield
+    await azure_clients.close()
 
 app = FastAPI(
     title="CDC Tweets Analysis App",
     description="Track how the public reacts to the CDC on Twitter using enrichment and vector search.",
+    lifespan=lifespan
 )
 
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / "static"
+TEMPLATES_DIR = BASE_DIR / "templates"
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     
     
 caches.set_config(
@@ -36,14 +52,14 @@ caches.set_config(
 )
 
 
-
-
 @app.get("/")
 async def home():
     logger.info("Redirect to dashboard")
     return RedirectResponse(url="/dashboard")
 
 
+def get_azure_clients() -> AzureClients:
+    return app.state.azure_clients
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(
