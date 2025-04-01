@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% block title %}CDC Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-header">CDC Tweets Dashboard</h1>
+<p class="dashboard-subheader">A visual breakdown of the public's perception of the Centers for Disease Control and Prevention (CDC)</p>
+
+
+<form method="get" action="/dashboard" class="form-container">
+  <label>
+    Start Date:
+    <input type="date" name="start_date" value="{{ start_date }}">
+  </label>
+  <label>
+    End Date:
+    <input type="date" name="end_date" value="{{ end_date }}">
+  </label>
+  <button type="submit">Apply</button>
+</form>
+
+<hr>
+<div class="chart-card">
+  <h3>Tweet Volume Over Time</h3>
+  <canvas id="volumeChart"></canvas>
+</div>
+<div class="chart-card">
+  <h3>Average Sentiment Over Time</h3>
+  <canvas id="sentimentTrendChart"></canvas>
+</div>
+<div class="chart-card">
+  <h3>Sentiment Breakdown</h3>
+  <canvas id="sentimentChart"></canvas>
+</div>
+<div class="chart-card centered-chart">
+  <h3>Tweet Language Distribution</h3>
+  <canvas id="languageChart"></canvas>
+</div>
+<br>
+<div class="chart-card flex-split">
+  <h3>Top Entities Mentioned with the CDC</h3>
+  <div>
+    <canvas id="entityChart"></canvas>
+  </div>
+  <div>
+    <ul>
+      {% for entity in data.entity_counts %}
+      <li><a href="{{ entity.url }}" target="_blank">{{ entity.name }}</a> ({{ entity.count }})</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+</div>
+
+<div class="chart-card">
+  <h3>Most Popular Tweets</h3>
+  <ul class="tweet-list">
+    {% for tweet in data.popular_tweets %}
+    <li class="tweet-card">
+      <a href="{{ tweet.source_url }}" target="_blank" style="text-decoration: none; color: inherit;">
+        <div class="tweet-header">
+          <strong class="tweet-author">User ID: {{ tweet.author_id }}</strong><br>
+          <small class="tweet-date">{{ tweet.created_at }}</small>
+        </div>
+        <p class="tweet-text">{{ tweet.text }}</p>
+        <div class="tweet-footer">
+          <small>Language: {{ tweet.language }} | Popularity Score: {{ tweet.popularity_score }}</small>
+        </div>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+
+
+
+<!-- Chart.js -->
+
+
+<script>
+  // Volume Chart
+  new Chart(document.getElementById('volumeChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: {{ data.date_counts | map(attribute = "date") | list | safe }},
+    datasets: [{
+      label: 'Tweets Per Day',
+      data: {{ data.date_counts | map(attribute = "count") | list | safe }},
+    borderColor: '#84bfff',
+    backgroundColor: 'rgba(132,191,255,0.15)',
+    fill: false,
+    tension: 0.3
+      }]
+    },
+    options: {
+    responsive: true,
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: 'day',
+          displayFormats: {
+            day: 'MM/dd',
+            week: "'Week of' MM/dd",
+            month: 'MMM yyyy'
+          },
+          tooltipFormat: 'MM/dd/yyyy'
+        },
+        ticks: {
+          autoSkip: true,
+          maxTicksLimit: 12
+        }
+      },
+      y: {
+        ticks: {
+          callback: function (value) {
+            if (Number.isInteger(value)) return value;
+          },
+          precision: 0,
+          padding: 8
+        },
+        beginAtZero: false,
+        grace: '10%'
+      }
+    }
+  }
+  });
+
+  // Sentiment Breakdown Chart
+  new Chart(document.getElementById('sentimentChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: {{ data.sentiment_label_counts | map(attribute = "label") | list | safe }},
+    datasets: [{
+      label: 'Sentiment',
+      data: {{ data.sentiment_label_counts | map(attribute = "count") | list | safe }},
+    backgroundColor: ['green', 'gray', 'red']
+      }]
+    },
+    options: {
+    responsive: true,
+    indexAxis: 'y'
+  }
+  });
+
+  // Sentiment over time Chart
+  new Chart(document.getElementById('sentimentTrendChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: {{ data.date_sentiment_scores | map(attribute = "date") | list | safe }},
+    datasets: [
+    {
+      label: 'Average Sentiment',
+      data: {{ data.date_sentiment_scores | map(attribute = "score") | list | safe }},
+    borderColor: 'purple',
+    tension: 0.3,
+    pointRadius: 3,
+    fill: false,
+        }
+  ]
+    },
+    options: {
+    responsive: true,
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: 'day',
+          displayFormats: {
+            day: 'MM/dd',
+            week: "'Week of' MM/dd",
+            month: 'MMM yyyy'
+          },
+          tooltipFormat: 'MM/dd/yyyy'
+        },
+        ticks: {
+          autoSkip: true,
+          maxTicksLimit: 12
+        }
+      },
+      y: {
+        min: 0,
+        max: 1,
+        ticks: {
+          callback: function (value) {
+            if (value === 1) return 'Positive';
+            if (value === 0.5) return 'Neutral';
+            if (value === 0) return 'Negative';
+            return value;
+          }
+        }
+      }
+    }
+  }
+  });
+
+
+  // Language Chart
+  new Chart(document.getElementById('languageChart').getContext('2d'), {
+    type: 'pie',
+    data: {
+      labels: {{ data.language_counts | map(attribute = "language") | list | safe }},
+    datasets: [{
+      data: {{ data.language_counts | map(attribute = "count") | list | safe }},
+    backgroundColor: ['#36a2eb', '#ff6384', '#ffce56', '#4bc0c0', '#9966ff', '#c9cbcf']
+      }]
+    },
+    options: { responsive: true }
+  });
+
+  // Entities Bar Chart
+  new Chart(document.getElementById('entityChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: {{ data.entity_counts | map(attribute = "name") | list | safe }},
+    datasets: [{
+      label: 'Mentions',
+      data: {{ data.entity_counts | map(attribute = "count") | list | safe }},
+    backgroundColor: 'orange'
+      }]
+    },
+    options: {
+    responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            return `${context.label}: ${context.raw} mentions`;
+          }
+        }
+      }
+    }
+  }
+  });
+
+
+  {# // Word Cloud for Key Phrases
+    const keyPhraseData = {
+      labels: [
+        {% for phrase, count in data.key_phrases %}
+    { text: "{{ phrase }}", weight: { { count } } } {% if not loop.last %}, {% endif %}
+    {% endfor %}
+    ]
+  };
+
+  new Chart(document.getElementById('wordCloud'), {
+    type: 'wordCloud',
+    data: keyPhraseData,
+    options: {
+      title: { display: false },
+      plugins: { legend: { display: false } },
+      font: {
+        family: 'Arial',
+        size: function (context) {
+          return context.raw.weight + 10;
+        }
+      }
+    }
+  }); #}
+
+Chart.defaults.color = '#cccccc';
+Chart.defaults.borderColor = '#2e2e2e';
+Chart.defaults.plugins.legend.labels.color = '#cccccc';
+Chart.defaults.plugins.tooltip.titleColor = '#ffffff';
+Chart.defaults.plugins.tooltip.bodyColor = '#eeeeee';
+Chart.defaults.font.family = "'Segoe UI', Roboto, sans-serif";
+Chart.defaults.font.size = 13;
+Chart.defaults.elements.line.borderColor = '#84bfff';
+Chart.defaults.elements.line.borderWidth = 2;
+Chart.defaults.elements.point.radius = 3;
+
+</script>
+{% endblock %}
