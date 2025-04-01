@@ -2,16 +2,14 @@ import os
 from datetime import datetime
 from typing import Dict, List, Tuple
 from collections import defaultdict
-from azure.search.documents.aio import SearchClient, AsyncSearchItemPaged
+from azure.search.documents.aio import AsyncSearchItemPaged
 
 from aiocache import cached
 
-from clients import init_search_client
-from models.dashboard import DashboardData, PopularTweet, DateCountObj, SentimentLabelCountObj, LanguageCountObj, DateSentimentScoreObj, EntityCountObj
-
-
+from tweets_analysis_app.clients import get_azure_clients
+from tweets_analysis_app.models.dashboard import DashboardData, PopularTweet, DateCountObj, SentimentLabelCountObj, LanguageCountObj, DateSentimentScoreObj, EntityCountObj
+from tweets_analysis_app.types.validators import consolidate_sentiment_label
 import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +21,53 @@ search_query_alt = "((Centers for Disease Control and Prevention)^10 OR (CDC AND
 search_threshold = 3.0
 # x = ["text", "source_url", "popularity_score", "language", "keyPhrases", "linked_entities", "linked_entity_urls"]
 
+
+
+@cached()
+async def get_dashboard_data(start_date: str, end_date: str) -> DashboardData:
+
+    filter_query = "created_at gt {}T00:00:00Z and created_at lt {}T23:59:59Z".format(start_date, end_date)
+
+    clients = get_azure_clients()
+    dashboard_results = await clients.get_search_client().search(
+        search_text=search_query, 
+        filter=filter_query,
+        facets=["created_at,interval:day", "sentiment", "language", "linked_entities"], 
+        top=1000,
+        select=["created_at", "sentiment", "language", "keyPhrases", "linked_entities", "linked_entity_urls"]
+    )
+
+    popular_results = await clients.get_search_client().search(
+        search_text=search_query,
+        filter=filter_query,
+        order_by=["popularity_score desc"], 
+        top=25,
+        select=["text", "created_at", "author_id", "source_url", "popularity_score", "language"]
+    )
+
+    filtered_dashboard_results, date_counts, sentiment_label_counts, language_counts, entity_counts = \
+        await filter_dashboard_results(results=dashboard_results, threshold=search_threshold)
+
+    filtered_popular_results = await filter_popular_results(results=popular_results, threshold=search_threshold, top=5)
+
+    date_sentiment_scores = calculate_date_sentiment_scores(filtered_dashboard_results)
+
+    # print("Date Counts: []" + "".join(str(date_counts)) + "]")
+    # print("Sentiment Label Counts: []" + "".join(str(sentiment_label_counts)) + "]")
+    # print("Date Sentiment Score: []" + "".join(str(date_sentiment_scores)) + "]")
+    # print("Language Counts: []" + "".join(str(language_counts)) + "]")
+    # print("Entity Counts: []" + "".join(str(entity_counts)) + "]")
+    # print("Popular Tweets: []" + "".join(str(filtered_popular_results)) + "]")
+
+    return DashboardData(
+        date_counts=date_counts, 
+        sentiment_label_counts=sentiment_label_counts, 
+        date_sentiment_scores=date_sentiment_scores,
+        language_counts=language_counts,
+        entity_counts=entity_counts,
+        popular_tweets=filtered_popular_results
+    )
+
     
 async def filter_popular_results(results: AsyncSearchItemPaged[Dict], threshold: int, top: int) -> List[PopularTweet]:
     filtered_results = []
@@ -30,7 +75,7 @@ async def filter_popular_results(results: AsyncSearchItemPaged[Dict], threshold:
     async for result in results:
         if i == top:
             break
-        score = results.get("@search.score", 0)
+        score = result.get("@search.score", 0)
         if score >= threshold:
             filtered_results.append(PopularTweet(
                 text=result.get("text", None), 
@@ -47,7 +92,7 @@ async def filter_popular_results(results: AsyncSearchItemPaged[Dict], threshold:
 async def filter_dashboard_results(
         results: AsyncSearchItemPaged[Dict], threshold: int) -> Tuple[List[dict],
              List[DateCountObj], List[SentimentLabelCountObj], List[LanguageCountObj], List[EntityCountObj]]:
-    original_facets = results.get_facets()
+    original_facets = await results.get_facets()
 
     filtered_results = []
     # Nested dictionary generator
@@ -70,20 +115,26 @@ async def filter_dashboard_results(
                 facet_value = result.get(facet_type, None)
                 if facet_value is not None:
                     if isinstance(facet_value, str):
+                        if facet_type == "created_at":
+                            facet_value = datetime.fromisoformat(facet_value.replace("Z", ""))\
+                                            .replace(hour=0, minute=0, second=0, microsecond=0)
                         subtract_facets[facet_type][facet_value] += 1
                     elif isinstance(facet_value, list):
-                        for item in value:
-                            subtract_facets[facet_type][facet_value] += 1
+                        for item in facet_value:
+                            subtract_facets[facet_type][item] += 1
     
     date_counts: List[DateCountObj] = []
-    sentiment_label_counts: List[SentimentLabelCountObj] = []
+    sentiment_label_counts_map = defaultdict(int)
     language_counts: List[LanguageCountObj] = []
-    entity_counts: List[EntityCountObj]
+    entity_counts: List[EntityCountObj] = []
     for facet_type in original_facets.keys():
         for facet_obj in original_facets.get(facet_type):
             value = facet_obj["value"]
             old_count = facet_obj["count"]
-            subtract_count = subtract_facets[facet_type].get(value)
+            if facet_type == "created_at":
+                value = datetime.fromisoformat(value.replace("Z", ""))\
+                            .replace(hour=0, minute=0, second=0, microsecond=0)
+            subtract_count = subtract_facets[facet_type].get(value, 0)
             new_count = max(old_count - subtract_count, 0)
             if new_count == 0:
                 continue
@@ -91,12 +142,16 @@ async def filter_dashboard_results(
             if facet_type == "created_at":
                 date_counts.append(DateCountObj(date=value, count=new_count))
             elif facet_type == "sentiment":
-                sentiment_label_counts.append(SentimentLabelCountObj(label=value, count=new_count))
+                sentiment_label_counts_map[consolidate_sentiment_label(value)] += new_count
             elif facet_type == "language":
                 language_counts.append(LanguageCountObj(language=value, count=new_count))
             elif facet_type == "linked_entities":
                 url = entity_url_map.get(value)
                 entity_counts.append(EntityCountObj(name=value, url=url, count=new_count))
+
+    sentiment_label_counts = [SentimentLabelCountObj(label=label, count=count) for label, count in sentiment_label_counts_map.items()]
+    order = ["Positive", "Neutral", "Negative"]
+    sentiment_label_counts.sort(key=lambda x: order.index(x.label))
         
     return filtered_results, date_counts, sentiment_label_counts, language_counts, entity_counts
 
@@ -104,72 +159,33 @@ async def filter_dashboard_results(
 def calculate_date_sentiment_scores(results: List[dict]) -> List[DateSentimentScoreObj]:
     date_sentiment_scores: List[DateSentimentScoreObj] = []
     sentiment_map = {"positive": 1.0, "neutral": 0.5, "negative": 0}
-    map = defaultdict(list)
+    date_sentiment_map = defaultdict(list)
     for result in results:
         raw_datetime = result.get("created_at", None)
-        date = datetime.fromisoformat(raw_datetime).replace("Z", "")\
+        date = datetime.fromisoformat(raw_datetime.replace("Z", ""))\
                     .replace(hour=0, minute=0, second=0, microsecond=0)
         
         sentiment = result.get("sentiment", None)
         if sentiment not in sentiment_map:
             sentiment = "neutral"
 
-        map[date] += sentiment_map.get(sentiment)
+        date_sentiment_map[date].append(sentiment_map.get(sentiment))
 
-    for date, score_list in map.items():
-        score = sum(score_list) / len(score_list)
-        date_sentiment_scores.append(DateSentimentScoreObj(date=date, score=score))
+    for date, score_list in date_sentiment_map.items():
+        score_avg = sum(score_list) / len(score_list)
+        date_sentiment_scores.append(DateSentimentScoreObj(date=date, score=score_avg))
+    
+    date_sentiment_scores.sort(key=lambda x: datetime.fromisoformat(x.date))
 
     return date_sentiment_scores
 
-async def consolidate_phrases(results: List[dict]) -> Dict[str, int]:
-    flattened_phrases = []
-    for result in results:
-        flattened_phrases.extend(result.get("keyPhrases", []))
+# async def consolidate_phrases(results: List[dict]) -> Dict[str, int]:
+#     flattened_phrases = []
+#     for result in results:
+#         flattened_phrases.extend(result.get("keyPhrases", []))
 
 
-
-@cached()
-async def get_dashboard_data(start_date: str, end_date: str) -> DashboardData:
-
-    client = await init_search_client()
-    filter_query = "created_at gt {}T00:00:00Z and created_at lt {}T23:59:59Z".format(start_date, end_date)
-
-    async with client:
-        dashboard_results = await client.search(
-            search_text=search_query, 
-            filter=filter_query,
-            facets=["created_at,interval:day", "sentiment", "language", "linked_entities"], 
-            top=1000,
-            select=["created_at", "sentiment", "keyPhrases", "linked_entities", "linked_entity_urls"]
-        )
-
-        popular_results = await client.search(
-            search_text=search_query,
-            filter=filter_query,
-            order_by=["popularity_score"], 
-            top=25,
-            select=["text", "created_at", "author_id", "source_url", "popularity_score", "language"]
-        )
-
-        filtered_dashboard_results, date_counts, sentiment_label_counts, language_counts, entity_counts = \
-            await filter_dashboard_results(results=dashboard_results, threshold=search_threshold)
-
-        filtered_popular_results = await filter_popular_results(results=popular_results, threshold=search_threshold, top=5)
-
-        date_sentiment_scores = calculate_date_sentiment_scores(filtered_dashboard_results)
-
-        return DashboardData(
-            date_counts=date_counts, 
-            sentiment_label_counts=sentiment_label_counts, 
-            date_sentiment_scores=date_sentiment_scores,
-            language_counts=language_counts,
-            entity_counts=entity_counts,
-            popular_tweets=filtered_popular_results
-        )
-
-
-
+    # OLD CODE FOR PROCESSING
     # logger.info("received search results")
 
     # cdc_filtered_results = []
