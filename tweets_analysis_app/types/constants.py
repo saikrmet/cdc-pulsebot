@@ -9,6 +9,7 @@ LANGUAGE_MAP = {
   "ur": "Urdu",
   "cy": "Welsh",
   "el": "Greek",
+  "ca": "Catalan",
 
   "fr": "French",
   "es": "Spanish",

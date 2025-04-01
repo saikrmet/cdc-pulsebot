@@ -1,15 +1,14 @@
 from pydantic import BaseModel
 from typing import Dict, List, Tuple
-from datetime import datetime, date
 from tweets_analysis_app.types.annotated import PositiveCount, SentimentLabel, SentimentScore, \
-    LanguageLabel
+    LanguageLabel, DatetimeString
 
 
 
     
 # Model for count by datetime
 class DateCountObj(BaseModel):
-    date: datetime
+    date: DatetimeString
     count: PositiveCount
 
 # Model for count by sentiment label
@@ -19,7 +18,7 @@ class SentimentLabelCountObj(BaseModel):
 
 # Model for sentiment score by date
 class DateSentimentScoreObj(BaseModel):
-    date: datetime
+    date: DatetimeString
     score: SentimentScore
 
 # Model for count by language
@@ -48,7 +47,7 @@ class EntityCountObj(BaseModel):
 # Model for popular tweets
 class PopularTweet(BaseModel):
     text: str
-    created_at: datetime
+    created_at: DatetimeString
     author_id: str
     source_url: str
     language: LanguageLabel
