@@ -193,6 +193,7 @@ def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[an
                 OR \"@CDCgov\" OR \"#CDC\") -is:retweet -is:quote -is:reply",
         tweet_fields=["id", "text", "created_at", "author_id", "entities", 
                       "possibly_sensitive", "conversation_id", "public_metrics"], 
+        sort_order="relevancy"
         start_time=start_time.isoformat(),
         end_time=end_time.isoformat(), 
         max_results=max_results
