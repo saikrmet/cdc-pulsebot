@@ -17,9 +17,10 @@ class AzureClients:
         self._keyvault_uri = os.getenv("KEY_VAULT_URI")
         self._secret_client = SecretClient(vault_url=self._keyvault_uri, 
                                           credential=self._credential)
-        self.search_client = None
-        self.openai_client = None
-        self.openai_deployment = None
+        self._search_client = None
+        self._openai_client = None
+        self.openai_embedding_deployment = None
+        self.openai_completions_deployment = None
 
     async def init_clients(self):
         async with self._secret_client:
@@ -28,29 +29,32 @@ class AzureClients:
             search_index_name = (await self._secret_client.get_secret("SEARCH-INDEX-NAME")).value
             openai_endpoint = (await self._secret_client.get_secret("OPENAI-ENDPOINT")).value
             openai_api_version = (await self._secret_client.get_secret("OPENAI-API-VERSION")).value
-            self.openai_deployment = (await self._secret_client.get_secret("OPENAI-DEPLOYMENT-NAME"))
+            self.openai_embedding_deployment = (await self._secret_client.get_secret("OPENAI-EMBEDDING-DEPLOYMENT-NAME"))
+            self.openai_completions_deployment = (await self._secret_client.get_secret("OPENAI-COMPLETIONS-DEPLOYMENT-NAME"))
 
-            self.search_client = SearchClient(endpoint=search_endpoint, index_name=search_index_name,
+            self._search_client = SearchClient(endpoint=search_endpoint, index_name=search_index_name,
                                         credential=AzureKeyCredential(search_key))
 
-            self.openai_client = AsyncAzureOpenAI(azure_endpoint=openai_endpoint, 
+            self._openai_client = AsyncAzureOpenAI(azure_endpoint=openai_endpoint, 
                                                 azure_ad_token=self._token_provider,
                                                 api_version=openai_api_version)
-        
-    def get_search_client(self):
-        if self.search_client is None:
-            raise Exception("Search client has not been initialized.")
-        return self.search_client
     
-    def get_openai_client(self):
-        if self.openai_client is None:
+    @property
+    def search_client(self):
+        if self._search_client is None:
+            raise Exception("Search client has not been initialized.")
+        return self._search_client
+    
+    @property
+    def openai_client(self):
+        if self._openai_client is None:
             raise Exception("OpenAI client has not been initialized.")
-        return self.openai_client
+        return self._openai_client
 
     
     async def close(self):
-        await self.search_client.close()
-        await self.openai_client.close()
+        await self._search_client.close()
+        await self._openai_client.close()
         await self._credential.close()
 
 
