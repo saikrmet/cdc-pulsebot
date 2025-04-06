@@ -21,15 +21,15 @@ search_query_alt = "((Centers for Disease Control and Prevention)^10 OR (CDC AND
 search_threshold = 3.0
 # x = ["text", "source_url", "popularity_score", "language", "keyPhrases", "linked_entities", "linked_entity_urls"]
 
-
+clients = get_azure_clients()
+search_client = clients.search_client
 
 @cached()
 async def get_dashboard_data(start_date: str, end_date: str) -> DashboardData:
 
     filter_query = "created_at gt {}T00:00:00Z and created_at lt {}T23:59:59Z".format(start_date, end_date)
 
-    clients = get_azure_clients()
-    dashboard_results = await clients.get_search_client().search(
+    dashboard_results = await search_client.search(
         search_text=search_query, 
         filter=filter_query,
         facets=["created_at,interval:day", "sentiment", "language", "linked_entities"], 
@@ -37,7 +37,7 @@ async def get_dashboard_data(start_date: str, end_date: str) -> DashboardData:
         select=["created_at", "sentiment", "language", "keyPhrases", "linked_entities", "linked_entity_urls"]
     )
 
-    popular_results = await clients.get_search_client().search(
+    popular_results = await search_client.search(
         search_text=search_query,
         filter=filter_query,
         order_by=["popularity_score desc"], 
