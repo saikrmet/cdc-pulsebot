@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Query, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from typing import Optional
 from datetime import datetime, timedelta
 from aiocache import caches
@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 
 from tweets_analysis_app.services.dashboard_service import get_dashboard_data
 from tweets_analysis_app.models.dashboard import DashboardData
+
+from tweets_analysis_app.services.chat_service import stream_chat_response
+from tweets_analysis_app.models.chat import ChatRequest, ChatResponse
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -56,10 +59,7 @@ caches.set_config(
 async def home():
     logger.info("Redirect to dashboard")
     return RedirectResponse(url="/dashboard")
-
-
-def get_azure_clients() -> AzureClients:
-    return app.state.azure_clients
+    
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(
@@ -88,3 +88,17 @@ async def dashboard(
                                       })
 
 
+@app.get("/chat", response_class=HTMLResponse)
+async def load_chat(request: Request):
+    return templates.TemplateResponse("chat.html", {"request": request})
+
+
+@app.post("/chat", response_class=StreamingResponse)
+async def send_chat(request: Request):
+    body = await request.json()
+    chat_request = ChatRequest(**body)
+
+    return StreamingResponse(
+        content=stream_chat_response(chat_request),
+        media_type="application/x-ndjson"
+    )
