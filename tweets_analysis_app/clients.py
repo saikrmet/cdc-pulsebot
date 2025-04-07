@@ -21,6 +21,7 @@ class AzureClients:
         self._openai_client = None
         self.openai_embedding_deployment = None
         self.openai_completions_deployment = None
+        self.search_suggester = None
 
     async def init_clients(self):
         async with self._secret_client:
@@ -31,6 +32,7 @@ class AzureClients:
             openai_api_version = (await self._secret_client.get_secret("OPENAI-API-VERSION")).value
             self.openai_embedding_deployment = (await self._secret_client.get_secret("OPENAI-EMBEDDING-DEPLOYMENT-NAME"))
             self.openai_completions_deployment = (await self._secret_client.get_secret("OPENAI-COMPLETIONS-DEPLOYMENT-NAME"))
+            self.search_suggester = (await self._secret_client.get_secret("SEARCH-SUGGESTER-NAME"))
 
             self._search_client = SearchClient(endpoint=search_endpoint, index_name=search_index_name,
                                         credential=AzureKeyCredential(search_key))
