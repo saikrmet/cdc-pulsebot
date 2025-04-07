@@ -30,9 +30,9 @@ class AzureClients:
             search_index_name = (await self._secret_client.get_secret("SEARCH-INDEX-NAME")).value
             openai_endpoint = (await self._secret_client.get_secret("OPENAI-ENDPOINT")).value
             openai_api_version = (await self._secret_client.get_secret("OPENAI-API-VERSION")).value
-            self.openai_embedding_deployment = (await self._secret_client.get_secret("OPENAI-EMBEDDING-DEPLOYMENT-NAME"))
-            self.openai_completions_deployment = (await self._secret_client.get_secret("OPENAI-COMPLETIONS-DEPLOYMENT-NAME"))
-            self.search_suggester = (await self._secret_client.get_secret("SEARCH-SUGGESTER-NAME"))
+            self.openai_embedding_deployment = (await self._secret_client.get_secret("OPENAI-EMBEDDING-DEPLOYMENT-NAME")).value
+            self.openai_completions_deployment = (await self._secret_client.get_secret("OPENAI-COMPLETIONS-DEPLOYMENT-NAME")).value
+            self.search_suggester = (await self._secret_client.get_secret("SEARCH-SUGGESTER-NAME")).value
 
             self._search_client = SearchClient(endpoint=search_endpoint, index_name=search_index_name,
                                         credential=AzureKeyCredential(search_key))
