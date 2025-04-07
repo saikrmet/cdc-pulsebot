@@ -21,11 +21,11 @@ search_query_alt = "((Centers for Disease Control and Prevention)^10 OR (CDC AND
 search_threshold = 3.0
 # x = ["text", "source_url", "popularity_score", "language", "keyPhrases", "linked_entities", "linked_entity_urls"]
 
-clients = get_azure_clients()
-search_client = clients.search_client
 
 @cached()
 async def get_dashboard_data(start_date: str, end_date: str) -> DashboardData:
+    clients = get_azure_clients()
+    search_client = clients.search_client
 
     filter_query = "created_at gt {}T00:00:00Z and created_at lt {}T23:59:59Z".format(start_date, end_date)
 
