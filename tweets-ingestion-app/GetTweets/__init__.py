@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime, timedelta, timezone
 import azure.functions as func
-
+import re
 from azure.identity import DefaultAzureCredential
 from azure.core.credentials import AzureKeyCredential
 from azure.keyvault.secrets import SecretClient
@@ -14,6 +14,23 @@ from .chunking import chunk_text, generate_chunk_id
 
 # Frozen now for timestamp
 now = datetime.now(timezone.utc)
+
+# RegEx pattern for naive CDC filtering
+CDC_PATTERN = re.compile(
+    r"""
+    (?:            
+        \bCDC\b      
+        (?![A-Za-z0-9_])  
+    )
+    |
+    (?:\bCenters\s+for\s+Disease\s+Control(?:\s+and\s+Prevention)?\b)
+    |
+    (?:@CDCgov)
+    |
+    (?<![#\w])#CDC(?![A-Za-z0-9_]) 
+    """,
+    re.IGNORECASE
+)
 
 def main(dailytimer: func.TimerRequest) -> None:
     """Function that pulls tweets about the Centers for Disease Control 
@@ -143,6 +160,9 @@ def get_chunked_tweets(tweets: list[any], chunk_size: int,
         if tweet_text is None:
             continue
 
+        if not is_about_cdc(tweet_text=tweet_text):
+            continue
+
         if getattr(tweet, "possibly_sensitive", False):
             continue
 
@@ -190,7 +210,7 @@ def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[an
     paginator = tweepy.Paginator(
         twitter_client.search_recent_tweets,
         query="(\"CDC\" OR \"Centers for Disease Control\" OR \"Centers for Disease Control and Prevention\" \
-                OR \"@CDCgov\" OR \"#CDC\") -is:retweet -is:quote -is:reply lang:en",
+                OR \"@CDCgov\" OR \"#CDC\") -is:retweet -is:quote -is:reply",
         tweet_fields=["id", "text", "created_at", "author_id", "entities", 
                       "possibly_sensitive", "conversation_id", "public_metrics"], 
         sort_order="relevancy",
@@ -249,3 +269,9 @@ def get_top_n_tweets(all_tweets: list[any], n: int) -> list[any]:
     scored_all_tweets = sorted(all_tweets, key=score_tweet, 
                                reverse=True) 
     return scored_all_tweets[:n] 
+
+def is_about_cdc(tweet_text: str) -> bool:
+    if not tweet_text or not tweet_text.strip():
+        return False
+    
+    return bool(CDC_PATTERN.search(tweet_text))
