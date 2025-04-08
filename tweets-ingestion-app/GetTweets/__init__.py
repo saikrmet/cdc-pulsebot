@@ -84,15 +84,15 @@ def main(dailytimer: func.TimerRequest) -> None:
                                         now.strftime("%B %d, %Y")))
     logging.info(all_tweets)
     
-    #top_tweets = get_top_n_tweets(all_tweets=all_tweets, n=num_top_tweets)
+    # top_tweets = get_top_n_tweets(all_tweets=all_tweets, n=num_top_tweets)
 
-    #logging.info("Got top {} tweets".format(num_top_tweets))
+    # logging.info("Got top {} tweets".format(num_top_tweets))
 
     chunks = get_chunked_tweets(tweets=all_tweets, chunk_size=chunk_size, 
                                 chunk_overlap=chunk_overlap, 
                                 encoding_model=encoding_model)
-    logging.info("Chunked top {} tweets into {} total chunks"
-                 .format(num_top_tweets, len(chunks)))
+    # logging.info("Chunked top {} tweets into {} total chunks"
+    #              .format(num_top_tweets, len(chunks)))
     
     blob_url = keyvault_client.get_secret("TWEETS-BLOB-URL").value
     blob_container = keyvault_client.get_secret("TWEETS-BLOB-CONTAINER").value
@@ -210,7 +210,7 @@ def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[an
     paginator = tweepy.Paginator(
         twitter_client.search_recent_tweets,
         query="(\"CDC\" OR \"Centers for Disease Control\" OR \"Centers for Disease Control and Prevention\" \
-                OR \"@CDCgov\" OR \"#CDC\") -is:retweet -is:quote -is:reply",
+                OR \"@CDCgov\" OR \"#CDC\") -is:retweet -is:quote -is:reply lang:en",
         tweet_fields=["id", "text", "created_at", "author_id", "entities", 
                       "possibly_sensitive", "conversation_id", "public_metrics"], 
         sort_order="relevancy",
