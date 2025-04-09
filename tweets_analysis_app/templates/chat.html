@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+{% block body_class %}chat-mode{% endblock %}
+{% block title %}CDC Tweets Chat{% endblock %}
+
+{% block content %}
+<header class="chat-header">
+  <h1 class="chat-title">CDC Tweet Insights</h1>
+  <p class="chat-subtitle">Discover what people are saying about the CDC.</p>
+</header>
+
+<div class="chat-viewport">
+  <div class="chat-box" id="chatBox"></div>
+</div>
+
+<footer class="chat-footer">
+  <form id="chatForm" class="chat-form" onsubmit="handleSubmit(event)">
+    <div class="input-wrapper">
+      <input id="chatInput" type="text" placeholder="Ask a question..." autocomplete="off" />
+      <div id="autocompleteBox" class="autocomplete-box"></div>
+    </div>
+    <div class="button-wrapper">
+      <button type="submit" class="send-btn">Send</button>
+      <button type="button" id="clearBtn" class="clear-btn">Clear</button>
+    </div>
+  </form>
+</footer>
+
+
+<script>
+const chatBox = document.getElementById("chatBox");
+const chatViewport = document.querySelector(".chat-viewport");
+const chatInput = document.getElementById("chatInput");
+const autocompleteBox = document.getElementById("autocompleteBox");
+const chatForm = document.getElementById("chatForm");
+const clearBtn = document.getElementById("clearBtn");
+
+let currentController = null;
+
+async function handleSubmit(event) {
+    event.preventDefault();
+    const userMsg = chatInput.value.trim();
+    if (!userMsg) return;
+
+    appendUserMessage(userMsg);
+    chatInput.value = "";
+    autocompleteBox.innerHTML = "";
+    autocompleteBox.style.display = "none";
+
+    if (currentController) currentController.abort();
+    currentController = new AbortController();
+
+    try {
+        const response = await fetch("/chat", {
+            method: "POST",
+            body: JSON.stringify({ messages: getMessages() }),
+            signal: currentController.signal,
+            headers: { "Content-Type": "application/json" }
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "", citationData = [], followupData = [];
+
+        let assistantDiv = appendAssistantMessage();
+        let messageContent = assistantDiv.querySelector(".message-content");
+        let markdownBuffer = "";
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const chunks = buffer.split("\n").filter(line => line.trim() !== "");
+            for (const line of chunks) {
+                const parsed = JSON.parse(line);
+                const delta = parsed.choices?.[0]?.delta;
+                if (delta?.content) {
+
+                    markdownBuffer += delta.content;
+                    // const messageContent = assistantDiv.querySelector(".message-content");
+                    // messageContent.innerHTML = marked.parse(markdownBuffer);
+                    // assistantDiv.querySelector(".message-content").innerText += delta.content;
+                }
+                if (parsed.choices?.[0]?.context) {
+                    citationData = parsed.choices[0].context.data_points || [];
+                    followupData = parsed.choices[0].context.followup_questions || [];
+                }
+            }
+
+            buffer = "";
+        }
+
+        if (assistantDiv && markdownBuffer) {
+            await renderMarkdownWithTyping(messageContent, markdownBuffer);
+        }
+
+        if (citationData.length) appendCitations(assistantDiv, citationData);
+        if (followupData.length) appendFollowups(assistantDiv, followupData);
+
+    } catch (err) {
+        if (err.name === "AbortError") return;
+        appendAssistantMessage("Error: " + err.message);
+    }
+}
+
+function scrollToBottomSmooth() {
+  requestAnimationFrame(() => {
+    chatViewport.scrollTo({
+      top: chatViewport.scrollHeight,
+      behavior: "smooth"
+    });
+  });
+}
+
+function getCurrentTimestamp() {
+  const now = new Date();
+  return now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+async function renderMarkdownWithTyping(element, markdownText, delay = 10) {
+    const lines = markdownText.split('\n');
+    let fullText = "";
+
+    for (const line of lines) {
+        for (let i = 0; i < line.length; i++) {
+            fullText += line[i];
+            element.innerHTML = marked.parse(fullText);
+            scrollToBottomSmooth()
+            await new Promise(r => setTimeout(r, delay));
+        }
+        fullText += "\n";
+        element.innerHTML = marked.parse(fullText);
+        scrollToBottomSmooth()
+        await new Promise(r => setTimeout(r, delay));
+    }
+}
+
+function appendUserMessage(text) {
+    const div = document.createElement("div");
+    div.className = "message user";
+    div.innerHTML = `
+        <div class="message-content">${text}</div>
+        <div class="timestamp">${getCurrentTimestamp()}</div>
+    `;
+    chatBox.appendChild(div);
+    scrollToBottomSmooth();
+    // chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function appendAssistantMessage() {
+    const div = document.createElement("div");
+    div.className = "message assistant";
+    const messageContent = document.createElement("div");
+    messageContent.className = "message-content";
+    messageContent.innerHTML = `
+        <div class="message-content">
+            <div class="typing-indicator">
+                <span>.</span><span>.</span><span>.</span>
+            </div>
+        </div>
+        <div class="timestamp">${getCurrentTimestamp()}</div>
+    `;
+    div.appendChild(messageContent);
+    chatBox.appendChild(div);
+    scrollToBottomSmooth();
+    // chatBox.scrollTop = chatBox.scrollHeight;
+    return div;
+}
+
+function appendFollowups(parentDiv, followups) {
+    if (!followups.length) return;
+    const section = document.createElement("div");
+    section.className = "followups";
+    followups.forEach(q => {
+        const btn = document.createElement("button");
+        btn.className = "followup-btn";
+        btn.textContent = q;
+        btn.type = "button"
+        btn.onclick = () => {
+            chatInput.value = q;
+            autocompleteBox.innerHTML = "";
+            autocompleteBox.style.display = "none";
+            chatForm.requestSubmit();
+        };
+        section.appendChild(btn);
+    });
+    parentDiv.appendChild(section);
+}
+
+function appendCitations(parentDiv, citations) {
+    if (!citations.length) return;
+    const section = document.createElement("div");
+    section.className = "citations";
+    const toggle = document.createElement("button");
+    toggle.className = "toggle-citations";
+    toggle.textContent = "View Sources";
+    toggle.type = "button";
+    const list = document.createElement("ul");
+    list.className = "citation-list";
+    list.style.display = "none";
+
+    toggle.onclick = () => {
+        const isOpen = list.style.display === "block";
+        list.style.display = isOpen ? "none" : "block";
+        section.classList.toggle("open", !isOpen);
+        toggle.textContent = isOpen ? "View Sources" : "Hide Sources";
+    };
+
+    citations.forEach((c, i) => {
+        const li = document.createElement("li");
+        li.className = "citation-card";
+        li.onclick = () => window.open(c.url, "_blank");
+        const text = document.createElement("div")
+        text.className = "citation-text"
+        const label = document.createElement("span");
+        label.className = "source-label";
+        label.textContent = `Source ${i + 1}: `;
+
+        const snippet = document.createElement("span");
+        snippet.textContent = `${c.snippet.slice(0, 100)}...`;
+
+
+        text.appendChild(label)
+        text.appendChild(snippet);
+        li.appendChild(text);
+
+        if (c.date) {
+            const dateElem = document.createElement("div")
+            const d = new Date(c.date)
+            const formatted = `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}/${d.getFullYear()}`
+
+            dateElem.innerText = formatted
+            dateElem.className = "citation-date"
+            li.appendChild(dateElem) 
+        }
+        list.appendChild(li);
+    });
+
+    section.appendChild(toggle);
+    section.appendChild(list);
+    parentDiv.appendChild(section);
+}
+
+function getMessages() {
+    const messages = [];
+    chatBox.querySelectorAll(".message").forEach(div => {
+        const isUser = div.classList.contains("user");
+        messages.push({
+            role: isUser ? "user" : "assistant",
+            content: div.querySelector(".message-content").innerText
+        });
+    });
+    return messages;
+}
+
+clearBtn.addEventListener("click", () => {
+    if (currentController) currentController.abort();
+    chatBox.innerHTML = "";
+    chatInput.value = "";
+    autocompleteBox.innerHTML = "";
+    autocompleteBox.style.display = "none";
+});
+
+/*
+chatInput.addEventListener("input", async () => {
+    const query = chatInput.value.trim();
+    if (!query) {
+        autocompleteBox.innerHTML = "";
+        autocompleteBox.style.display = "none";
+        return;
+    }
+
+    try {
+        const res = await fetch(`/suggest?q=${encodeURIComponent(query)}`);
+        const suggestions = await res.json();
+        autocompleteBox.innerHTML = "";
+        if (!suggestions.length) {
+            autocompleteBox.style.display = "none";
+            return;
+        }
+        suggestions.forEach(s => {
+            const div = document.createElement("div");
+            div.className = "suggestion-item";
+            div.textContent = s;
+            div.onclick = () => {
+                chatInput.value = s;
+                autocompleteBox.innerHTML = "";
+                autocompleteBox.style.display = "none";
+                chatForm.requestSubmit();
+            };
+            autocompleteBox.appendChild(div);
+        });
+        autocompleteBox.style.display = "block";
+    } catch (err) {
+        autocompleteBox.innerHTML = "";
+        autocompleteBox.style.display = "none";
+    }
+});
+*/
+</script>
+{% endblock %}
