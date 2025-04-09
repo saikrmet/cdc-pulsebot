@@ -1,0 +1,300 @@
+{
+    "name": "cdc-multilingual-tweets-index",
+    "fields": [
+      {
+        "name": "id",
+        "type": "Edm.String",
+        "searchable": false,
+        "filterable": false,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": false,
+        "key": true,
+        "synonymMaps": []
+      },
+      {
+        "name": "text",
+        "type": "Edm.String",
+        "searchable": true,
+        "filterable": false,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": false,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "cleaned_text",
+        "type": "Edm.String",
+        "searchable": true,
+        "filterable": false,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": false,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "chunk_index",
+        "type": "Edm.Int32",
+        "searchable": false,
+        "filterable": false,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": false,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "created_at",
+        "type": "Edm.DateTimeOffset",
+        "searchable": false,
+        "filterable": true,
+        "retrievable": true,
+        "stored": true,
+        "sortable": true,
+        "facetable": true,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "author_id",
+        "type": "Edm.String",
+        "searchable": false,
+        "filterable": true,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": false,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "conversation_id",
+        "type": "Edm.String",
+        "searchable": false,
+        "filterable": true,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": false,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "source_url",
+        "type": "Edm.String",
+        "searchable": false,
+        "filterable": false,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": false,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "popularity_score",
+        "type": "Edm.Double",
+        "searchable": false,
+        "filterable": true,
+        "retrievable": true,
+        "stored": true,
+        "sortable": true,
+        "facetable": false,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "language",
+        "type": "Edm.String",
+        "searchable": false,
+        "filterable": true,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": true,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "sentiment",
+        "type": "Edm.String",
+        "searchable": false,
+        "filterable": true,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": true,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "keyPhrases",
+        "type": "Collection(Edm.String)",
+        "searchable": true,
+        "filterable": false,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": false,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "linked_entities",
+        "type": "Collection(Edm.String)",
+        "searchable": true,
+        "filterable": true,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": true,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "linked_entity_urls",
+        "type": "Collection(Edm.String)",
+        "searchable": false,
+        "filterable": false,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": false,
+        "key": false,
+        "synonymMaps": []
+      },
+      {
+        "name": "text_vector",
+        "type": "Collection(Edm.Single)",
+        "searchable": true,
+        "filterable": false,
+        "retrievable": true,
+        "stored": true,
+        "sortable": false,
+        "facetable": false,
+        "key": false,
+        "dimensions": 1536,
+        "vectorSearchProfile": "hnsw-profile",
+        "synonymMaps": []
+      }
+    ],
+    "scoringProfiles": [
+      {
+        "name": "popularityScoring",
+        "functionAggregation": "sum",
+        "text": {
+          "weights": {
+            "cleaned_text": 3,
+            "keyPhrases": 2
+          }
+        },
+        "functions": [
+          {
+            "fieldName": "popularity_score",
+            "interpolation": "linear",
+            "type": "magnitude",
+            "boost": 1.5,
+            "magnitude": {
+              "boostingRangeStart": 10,
+              "boostingRangeEnd": 100,
+              "constantBoostBeyondRange": true
+            }
+          }
+        ]
+      }
+    ],
+    "suggesters": [
+      {
+        "name": "sg",
+        "searchMode": "analyzingInfixMatching",
+        "sourceFields": [
+          "keyPhrases",
+          "linked_entities"
+        ]
+      }
+    ],
+    "analyzers": [],
+    "normalizers": [],
+    "tokenizers": [],
+    "tokenFilters": [],
+    "charFilters": [],
+    "similarity": {
+      "@odata.type": "#Microsoft.Azure.Search.BM25Similarity"
+    },
+    "semantic": {
+      "configurations": [
+        {
+          "name": "semantic-config",
+          "prioritizedFields": {
+            "prioritizedContentFields": [
+              {
+                "fieldName": "cleaned_text"
+              }
+            ],
+            "prioritizedKeywordsFields": [
+              {
+                "fieldName": "keyPhrases"
+              },
+              {
+                "fieldName": "linked_entities"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "vectorSearch": {
+      "algorithms": [
+        {
+          "name": "cosine-algo",
+          "kind": "hnsw",
+          "hnswParameters": {
+            "metric": "cosine",
+            "m": 4,
+            "efConstruction": 400,
+            "efSearch": 500
+          }
+        }
+      ],
+      "profiles": [
+        {
+          "name": "hnsw-profile",
+          "algorithm": "cosine-algo",
+          "vectorizer": "openai-embedding-3-small",
+          "compression": "scalarquant"
+        }
+      ],
+      "vectorizers": [
+        {
+          "name": "openai-embedding-3-small",
+          "kind": "azureOpenAI",
+          "azureOpenAIParameters": {
+            "resourceUri": "https://openai-cdc-tweets-analysis-dev-eus.openai.azure.com",
+            "deploymentId": "text-embedding-3-small-8KTPM",
+            "modelName": "text-embedding-3-small"
+          }
+        }
+      ],
+      "compressions": [
+        {
+          "name": "scalarquant",
+          "kind": "scalarQuantization",
+          "truncationDimension": 2,
+          "scalarQuantizationParameters": {
+            "quantizedDataType": "int8"
+          },
+          "rescoringOptions": {
+            "enableRescoring": true,
+            "defaultOversampling": 10,
+            "rescoreStorageMethod": "preserveOriginals"
+          }
+        }
+      ]
+    }
+  }

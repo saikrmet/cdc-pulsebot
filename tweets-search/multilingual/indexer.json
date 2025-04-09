@@ -1,0 +1,101 @@
+{
+    "@odata.context": "https://aisearch-cdc-tweets-analysis-dev-eus115739202326.search.windows.net/$metadata#indexers/$entity",
+    "name": "cdc-multilingual-tweets-indexer",
+    "description": null,
+    "dataSourceName": "cdc-tweets-datasource",
+    "skillsetName": "cdc-multilingual-tweets-skillset",
+    "targetIndexName": "cdc-multilingual-tweets-index",
+    "disabled": null,
+    "schedule": null,
+    "parameters": {
+      "batchSize": null,
+      "maxFailedItems": -1,
+      "maxFailedItemsPerBatch": -1,
+      "base64EncodeKeys": null,
+      "configuration": {
+        "dataToExtract": "contentAndMetadata",
+        "parsingMode": "jsonArray"
+      }
+    },
+    "fieldMappings": [
+      {
+        "sourceFieldName": "id",
+        "targetFieldName": "id",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "text",
+        "targetFieldName": "text",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "chunk_index",
+        "targetFieldName": "chunk_index",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "created_at",
+        "targetFieldName": "created_at",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "author_id",
+        "targetFieldName": "author_id",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "conversation_id",
+        "targetFieldName": "conversation_id",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "source_url",
+        "targetFieldName": "source_url",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "popularity_score",
+        "targetFieldName": "popularity_score",
+        "mappingFunction": null
+      }
+    ],
+    "outputFieldMappings": [
+      {
+        "sourceFieldName": "/document/cleaned_text",
+        "targetFieldName": "cleaned_text",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "/document/language",
+        "targetFieldName": "language",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "/document/sentiment",
+        "targetFieldName": "sentiment",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "/document/keyPhrases",
+        "targetFieldName": "keyPhrases",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "/document/linkedEntities/*/name",
+        "targetFieldName": "linked_entities",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "/document/linkedEntities/*/url",
+        "targetFieldName": "linked_entity_urls",
+        "mappingFunction": null
+      },
+      {
+        "sourceFieldName": "/document/embedding/*",
+        "targetFieldName": "text_vector",
+        "mappingFunction": null
+      }
+    ],
+    "cache": null,
+    "encryptionKey": null
+  }

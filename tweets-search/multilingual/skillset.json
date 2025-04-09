@@ -1,0 +1,193 @@
+{
+    "name": "cdc-multilingual-tweets-skillset",
+    "description": "Enrichment pipeline for cdc-multilingual-tweets-index",
+    "skills": [
+      {
+        "@odata.type": "#Microsoft.Skills.Text.LanguageDetectionSkill",
+        "name": "detect-language",
+        "description": "Detects the language of tweet text",
+        "context": "/document",
+        "inputs": [
+          {
+            "name": "text",
+            "source": "/document/text",
+            "inputs": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "languageCode",
+            "targetName": "language"
+          }
+        ]
+      },
+      {
+        "@odata.type": "#Microsoft.Skills.Text.KeyPhraseExtractionSkill",
+        "name": "extract-key-phrases",
+        "description": "Extract key phrases from tweet text",
+        "context": "/document",
+        "defaultLanguageCode": "en",
+        "inputs": [
+          {
+            "name": "text",
+            "source": "/document/cleaned_text",
+            "inputs": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "keyPhrases",
+            "targetName": "keyPhrases"
+          }
+        ]
+      },
+      {
+        "@odata.type": "#Microsoft.Skills.Text.V3.SentimentSkill",
+        "name": "get-sentiment",
+        "description": "Extract sentiment from tweet text",
+        "context": "/document",
+        "defaultLanguageCode": "en",
+        "includeOpinionMining": true,
+        "inputs": [
+          {
+            "name": "text",
+            "source": "/document/cleaned_text",
+            "inputs": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "sentiment",
+            "targetName": "sentiment"
+          }
+        ]
+      },
+      {
+        "@odata.type": "#Microsoft.Skills.Text.V3.EntityLinkingSkill",
+        "name": "link-entities",
+        "description": "Link named entities to canonical knowledge base entries",
+        "context": "/document",
+        "defaultLanguageCode": "en",
+        "minimumPrecision": 0.5,
+        "inputs": [
+          {
+            "name": "text",
+            "source": "/document/cleaned_text",
+            "inputs": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "entities",
+            "targetName": "linkedEntities"
+          }
+        ]
+      },
+      {
+        "@odata.type": "#Microsoft.Skills.Text.AzureOpenAIEmbeddingSkill",
+        "name": "#5",
+        "description": "Embedding skill",
+        "context": "/document",
+        "resourceUri": "https://openai-cdc-tweets-analysis-dev-eus.openai.azure.com",
+        "deploymentId": "text-embedding-3-small-8KTPM",
+        "dimensions": 1536,
+        "modelName": "text-embedding-3-small",
+        "inputs": [
+          {
+            "name": "text",
+            "source": "/document/cleaned_text",
+            "inputs": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "embedding",
+            "targetName": "embedding"
+          }
+        ]
+      },
+      {
+        "@odata.type": "#Microsoft.Skills.Text.TranslationSkill",
+        "name": "Translate text",
+        "description": "Translate only non-English text",
+        "context": "/document",
+        "defaultToLanguageCode": "en",
+        "suggestedFrom": "en",
+        "inputs": [
+          {
+            "name": "text",
+            "source": "/document/textToTranslate",
+            "inputs": []
+          },
+          {
+            "name": "fromLanguageCode",
+            "source": "/document/language",
+            "inputs": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "translatedText",
+            "targetName": "translated_text"
+          }
+        ]
+      },
+      {
+        "@odata.type": "#Microsoft.Skills.Util.ConditionalSkill",
+        "name": "Conditional ",
+        "description": "Create field if language is not English",
+        "context": "/document",
+        "inputs": [
+          {
+            "name": "condition",
+            "source": "= $(/document/language) != 'en'",
+            "inputs": []
+          },
+          {
+            "name": "whenTrue",
+            "source": "/document/text",
+            "inputs": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "output",
+            "targetName": "textToTranslate"
+          }
+        ]
+      },
+      {
+        "@odata.type": "#Microsoft.Skills.Util.ConditionalSkill",
+        "name": "Conditional merge for enrichment",
+        "description": "Merged field for english text",
+        "context": "/document",
+        "inputs": [
+          {
+            "name": "condition",
+            "source": "= $(/document/language) != 'en'",
+            "inputs": []
+          },
+          {
+            "name": "whenTrue",
+            "source": "/document/translated_text",
+            "inputs": []
+          },
+          {
+            "name": "whenFalse",
+            "source": "/document/text",
+            "inputs": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "output",
+            "targetName": "cleaned_text"
+          }
+        ]
+      }
+    ],
+    "cognitiveServices": {
+      "@odata.type": "#Microsoft.Azure.Search.AIServicesByKey",
+      "subdomainUrl": "https://aisvcs-cdc-tweets-analysis-dev-eus.cognitiveservices.azure.com/"
+    }
+  }
