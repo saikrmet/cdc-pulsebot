@@ -38,7 +38,7 @@ class AzureClients:
                                         credential=AzureKeyCredential(search_key))
 
             self._openai_client = AsyncAzureOpenAI(azure_endpoint=openai_endpoint, 
-                                                azure_ad_token=self._token_provider,
+                                                azure_ad_token_provider=self._token_provider,
                                                 api_version=openai_api_version)
     
     @property
