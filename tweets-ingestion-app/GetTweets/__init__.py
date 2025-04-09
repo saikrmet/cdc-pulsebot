@@ -27,9 +27,9 @@ CDC_PATTERN = re.compile(
     |
     (?:@CDCgov)
     |
-    (?<![#\w])#CDC(?![A-Za-z0-9_]) 
+    (?<![#\w])\#CDC(?![A-Za-z0-9_]) 
     """,
-    re.IGNORECASE
+    re.IGNORECASE | re.VERBOSE
 )
 
 def main(dailytimer: func.TimerRequest) -> None:
