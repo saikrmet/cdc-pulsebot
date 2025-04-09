@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Query, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, JSONResponse
 from typing import Optional
 from datetime import datetime, timedelta
 from aiocache import caches
@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 from tweets_analysis_app.services.dashboard_service import get_dashboard_data
 from tweets_analysis_app.models.dashboard import DashboardData
 
-from tweets_analysis_app.services.chat_service import stream_chat_response
-from tweets_analysis_app.models.chat import ChatRequest, ChatResponse
+from tweets_analysis_app.services.chat_service import stream_chat_response, format_as_ndjson, get_search_suggestions
+from tweets_analysis_app.models.chat import ChatRequest
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -99,6 +99,12 @@ async def send_chat(request: Request):
     chat_request = ChatRequest(**body)
 
     return StreamingResponse(
-        content=stream_chat_response(chat_request),
+        content=format_as_ndjson(stream_chat_response(chat_request)),
         media_type="application/x-ndjson"
     )
+
+# @app.get("/suggest")
+# async def suggest(q: str = Query(...)):
+#     suggestions = await get_search_suggestions(q)
+#     return JSONResponse(content=suggestions)
+    
