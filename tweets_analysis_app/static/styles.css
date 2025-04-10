@@ -222,6 +222,7 @@ li.tweet-card:hover {
   padding: 2rem 1rem;
   overflow-y: auto;
   max-height: calc(100vh - 300px); /* enough height minus footer/header */
+  margin-bottom: 2rem;
 }
 
 .chat-box {
@@ -269,6 +270,7 @@ li.tweet-card:hover {
   background-color: #1e1e1e;
   color: #eee;
   border-bottom-left-radius: 4px;
+  padding: 0rem 1rem 1rem;
   text-align: left;
   border: 1px solid #2c2c2c;
 }
@@ -408,9 +410,7 @@ li.tweet-card:hover {
   gap: 4px;
   align-items: center;
   font-size: 1.5rem;
-  padding: 0.5rem 0;
   color: #888;
-  margin-top: 0.5rem;
   animation: pulse 1s infinite ease-in-out;
 }
 
