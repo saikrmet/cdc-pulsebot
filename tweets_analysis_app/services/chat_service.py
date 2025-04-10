@@ -183,7 +183,7 @@ async def stream_chat_response(request: ChatRequest) -> AsyncGenerator[str, None
     stream = await openai_client.chat.completions.create(
         model=clients.openai_completions_deployment,
         messages=rag_messages,
-        # temperature=0.7, 
+        temperature=0.7, 
         stream=True
     )
 
@@ -216,22 +216,25 @@ async def stream_chat_response(request: ChatRequest) -> AsyncGenerator[str, None
         for doc in docs if doc.get("source_url")
     ]
 
+    followup_questions = []
     if followup_content:
         logging.info(followup_content)
         followup_questions = extract_followups(followup_content)
         logging.info(followup_questions)
-        yield {
-            "choices": [{
-                "delta": {"role": "assistant"},
-                "context": {
-                    "data_points": citations,
-                    "followup_questions": followup_questions
-                },
-                "index": 0,
-                "finish_reason": "stop"
-            }],
-            "object": "chat.completion.chunk"
-        }
+        
+    yield {
+        "choices": [{
+            "delta": {"role": "assistant"},
+            "context": {
+                "data_points": citations,
+                "followup_questions": followup_questions
+            },
+            "index": 0,
+            "finish_reason": "stop"
+        }],
+        "object": "chat.completion.chunk"
+    }
+        
 
 
 async def format_as_ndjson(r: AsyncGenerator[dict, None]) -> AsyncGenerator[str, None]:
