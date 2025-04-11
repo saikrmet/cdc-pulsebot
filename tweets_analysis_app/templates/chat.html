@@ -1,11 +1,15 @@
 {% extends "base.html" %}
-{% block body_class %}chat-mode{% endblock %}
+
 {% block title %}CDC Tweets Chat{% endblock %}
 
 {% block content %}
 <header class="chat-header">
-  <h1 class="chat-title">CDC Tweet Insights</h1>
-  <p class="chat-subtitle">Discover what people are saying about the CDC.</p>
+  <h1 class="page-header">CDC Tweets Chat</h1>
+  <p class="page-subheader">Discover what people are saying about the Centers for Disease Control and Prevention (CDC)</p>
+  <button id="clearChatButton" class="clear-chat-button" type="button" title="Clear chat">
+      <i class="fa-solid fa-trash-can"></i>
+      <span>Clear Chat</span>
+    </button>
 </header>
 
 <div class="chat-viewport">
@@ -14,14 +18,17 @@
 
 <footer class="chat-footer">
   <form id="chatForm" class="chat-form" onsubmit="handleSubmit(event)">
-    <div class="input-wrapper">
-      <input id="chatInput" type="text" placeholder="Ask a question..." autocomplete="off" />
-      <div id="autocompleteBox" class="autocomplete-box"></div>
-    </div>
-    <div class="button-wrapper">
-      <button type="submit" class="send-btn">Send</button>
-      <button type="button" id="clearBtn" class="clear-btn">Clear</button>
-    </div>
+  <div class="questionInputContainer">
+        <textarea id="chatInput" class="questionInputTextArea" 
+                  placeholder="Ask a question..."
+                  maxlength="1000"
+                  rows="1"></textarea>
+        <div id="autocompleteBox" class="autocomplete-box"></div>
+        <div class="questionInputButtonsContainer">
+          <button type="button" class="icon-button" id="clearInputButton" title="Clear question"><i class="fa-solid fa-trash-can"></i></button>
+          <button type="submit" class = "icon-button" id="sendButton" title="Send question"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
   </form>
 </footer>
 
@@ -32,7 +39,8 @@ const chatViewport = document.querySelector(".chat-viewport");
 const chatInput = document.getElementById("chatInput");
 const autocompleteBox = document.getElementById("autocompleteBox");
 const chatForm = document.getElementById("chatForm");
-const clearBtn = document.getElementById("clearBtn");
+const clearInputBtn = document.getElementById("clearInputButton");
+const clearChatBtn = document.getElementById("clearChatButton");
 
 let currentController = null;
 
@@ -48,6 +56,8 @@ async function handleSubmit(event) {
 
     if (currentController) currentController.abort();
     currentController = new AbortController();
+
+    
 
     try {
         const response = await fetch("/chat", {
@@ -259,7 +269,20 @@ function getMessages() {
     return messages;
 }
 
-clearBtn.addEventListener("click", () => {
+clearInputBtn.addEventListener("click", () => {
+    chatInput.value = ""
+})
+
+chatInput.addEventListener("keydown", function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault(); // Prevent newline insertion
+        // You can call the same submit handler
+        chatForm.requestSubmit()
+      }
+
+})
+
+clearChatBtn.addEventListener("click", () => {
     if (currentController) currentController.abort();
     chatBox.innerHTML = "";
     chatInput.value = "";
