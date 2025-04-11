@@ -17,15 +17,14 @@
     
 </head>
 
-<header class="nav-header">
+<body class="{% block body_class %}{% endblock %}">
+    <main class="container">
+    <header class="nav-header">
     <nav>
       <a href="/dashboard" class="nav-button">Dashboard</a>
       <a href="/chat" class="nav-button">Chat</a>
     </nav>
   </header>
-
-<body class="{% block body_class %}{% endblock %}">
-    <main class="container">
         {% block content %}{% endblock %}
     </main>
 </body>
