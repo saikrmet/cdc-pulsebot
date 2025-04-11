@@ -2,8 +2,8 @@
 {% block title %}CDC Dashboard{% endblock %}
 
 {% block content %}
-<h1 class="dashboard-header">CDC Tweets Dashboard</h1>
-<p class="dashboard-subheader">A visual breakdown of the public's perception of the Centers for Disease Control and Prevention (CDC)</p>
+<h1 class="page-header">CDC Tweets Dashboard</h1>
+<p class="page-subheader">A visual breakdown of the public's perception of the Centers for Disease Control and Prevention (CDC)</p>
 
 
 <form method="get" action="/dashboard" class="form-container">
@@ -19,6 +19,7 @@
 </form>
 
 <hr>
+
 <div class="chart-card">
   <h3>Tweet Volume Over Time</h3>
   <canvas id="volumeChart"></canvas>
@@ -36,19 +37,20 @@
   <canvas id="languageChart"></canvas>
 </div>
 <br>
-<div class="chart-card flex-split">
+<div class="chart-card">
   <h3>Top Entities Mentioned with the CDC</h3>
-  <div>
-    <canvas id="entityChart"></canvas>
+  <div class="flex-split">
+    <div class="left">
+      <canvas id="entityChart"></canvas>
+    </div>
+    <div class="right">
+      <ul>
+        {% for entity in data.entity_counts %}
+          <li><a href="{{ entity.url }}" target="_blank">{{ entity.name }}</a> ({{ entity.count }})</li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
-  <div>
-    <ul>
-      {% for entity in data.entity_counts %}
-      <li><a href="{{ entity.url }}" target="_blank">{{ entity.name }}</a> ({{ entity.count }})</li>
-      {% endfor %}
-    </ul>
-  </div>
-
 </div>
 
 <div class="chart-card">
@@ -92,37 +94,37 @@
       }]
     },
     options: {
-    responsive: true,
-    scales: {
-      x: {
-        type: 'time',
-        time: {
-          unit: 'day',
-          displayFormats: {
-            day: 'MM/dd',
-            week: "'Week of' MM/dd",
-            month: 'MMM yyyy'
+      responsive: true,
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'day',
+            displayFormats: {
+              day: 'MM/dd',
+              week: "'Week of' MM/dd",
+              month: 'MMM yyyy'
+            },
+            tooltipFormat: 'MM/dd/yyyy'
           },
-          tooltipFormat: 'MM/dd/yyyy'
+          ticks: {
+            autoSkip: true,
+            maxTicksLimit: 12
+          }
         },
-        ticks: {
-          autoSkip: true,
-          maxTicksLimit: 12
+        y: {
+          ticks: {
+            callback: function (value) {
+              if (Number.isInteger(value)) return value;
+            },
+            precision: 0,
+            padding: 8
+          },
+          beginAtZero: false,
+          grace: '10%'
         }
-      },
-      y: {
-        ticks: {
-          callback: function (value) {
-            if (Number.isInteger(value)) return value;
-          },
-          precision: 0,
-          padding: 8
-        },
-        beginAtZero: false,
-        grace: '10%'
       }
     }
-  }
   });
 
   // Sentiment Breakdown Chart
@@ -137,9 +139,9 @@
       }]
     },
     options: {
-    responsive: true,
-    indexAxis: 'y'
-  }
+      responsive: true,
+      indexAxis: 'y'
+    }
   });
 
   // Sentiment over time Chart
