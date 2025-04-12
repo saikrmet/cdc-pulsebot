@@ -34,10 +34,10 @@ jobs:
           python -m venv venv
           source venv/bin/activate
 
-      - name: Zip artifact for deployment
+      - name: Add requirements to root and zip artifact for deployment
         run: |
-          cd ${{ env.WEBAPP_PATH }}
-          zip -r ../release.zip .
+          cp ${{ env.WEBAPP_PATH }}/requirements.txt .
+          zip -r release.zip ${{ env.WEBAPP_PATH }} requirements.txt
 
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
