@@ -1,0 +1,11 @@
+fastapi
+aiocache
+aiohttp
+azure-search-documents
+azure-keyvault
+azure-core
+azure-identity
+openai
+uvicorn
+gunicorn
+jinja2
