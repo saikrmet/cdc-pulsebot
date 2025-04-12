@@ -5,8 +5,9 @@
 name: Build and deploy Python app to Azure Web App - cdc-tweets-analysis-app
 
 env:
-  AZURE_WEBAPP_NAME: cdc-tweets-analysis-app
+  AZURE_WEBAPP_NAME: 'cdc-tweets-analysis-app'
   PYTHON_VERSION: '3.12'
+  WEBAPP_PATH: 'tweets_analysis_app'
 
 on:
   push:
@@ -17,6 +18,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WEBAPP_PATH }}
     permissions:
       contents: read
 
@@ -42,20 +46,17 @@ jobs:
             ${{ runner.os }}-pip-
       
       - name: Install dependencies
-        working-directory: ./tweets_analysis_app
         run: pip install -r requirements.txt
 
 
       - name: Zip artifact for deployment
-        run: |
-          cd tweets_analysis_app
-          zip -r release.zip .
+        run: zip -r release.zip .
 
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: release.zip
+          path: ${{ env.WEBAPP_PATH }}/release.zip
 
 
   deploy:
@@ -78,4 +79,4 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_23343A79AE9E4906874DB558E76C150C }}
-          package: release.zip
+          package: '.'
