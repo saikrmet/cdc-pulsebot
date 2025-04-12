@@ -1,12 +1,12 @@
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from azure.search.documents.aio import SearchClient
 from azure.keyvault.secrets.aio import SecretClient
 from openai import AsyncAzureOpenAI
 from azure.core.credentials import AzureKeyCredential
 from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
 from pathlib import Path
-load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+# load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
 
 _azure_clients_instance = None
 
