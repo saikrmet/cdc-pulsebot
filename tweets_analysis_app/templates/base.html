@@ -20,10 +20,14 @@
 <body class="{% block body_class %}{% endblock %}">
     <main class="container">
     <header class="nav-header">
+    <div class="logo-container">
+        <a href="/"><img src="/static/JRSS_Logo.png" alt="JRSS Logo" class="logo" /></a>
+    </div>
     <nav>
       <a href="/dashboard" class="nav-button">Dashboard</a>
       <a href="/chat" class="nav-button">Chat</a>
     </nav>
+    
   </header>
         {% block content %}{% endblock %}
     </main>
