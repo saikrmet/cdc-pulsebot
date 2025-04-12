@@ -6,5 +6,5 @@ from pydantic import AfterValidator, Field
 DatetimeString = Annotated[datetime, AfterValidator(format_datetime)]
 PositiveCount = Annotated[int, Field(gt=0)]
 SentimentLabel = Annotated[str, AfterValidator(consolidate_sentiment_label)]
-SentimentScore = Annotated[float, Field(gt=0)]
+SentimentScore = Annotated[float, Field(ge=0)]
 LanguageLabel = Annotated[str, AfterValidator(get_language_label)]
