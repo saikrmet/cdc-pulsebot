@@ -1,7 +1,7 @@
 /* Header Layout */
 .nav-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   padding: 10px 150px;
   box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.3), 0px 0px 4px rgba(0, 0, 0, 0.16);
@@ -27,6 +27,12 @@
 
 .nav-button:hover {
   background-color: #e0e0e0;
+}
+
+.logo-container .logo {
+  height: 40px;
+  width: auto;
+  margin-top: 5px;
 }
 
 
