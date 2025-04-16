@@ -15,7 +15,7 @@ on:
       - main
     paths:
       - 'tweets_analysis_app/**'
-      - '.github/workflows/main_tweets_analysis_app.yml'
+      - '.github/workflows/main_cdc-tweets-analysis-app.yml'
   workflow_dispatch:
 
 jobs:
