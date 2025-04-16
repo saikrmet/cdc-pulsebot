@@ -18,4 +18,8 @@ Real-time tweet monitoring and AI-powered analysis platform for surfacing public
 - **Execution Demonstration**  
   The application is self-contained, cloud-deployable, and built to operate securely—showing how intelligent, modular tools can be developed and run within mission constraints.
 
-  
+<br>
+
+<p align="center">
+  <img src="docs/PulseBotArchDiagram.png" alt="RAG Architecture" width="500"/>
+</p>
