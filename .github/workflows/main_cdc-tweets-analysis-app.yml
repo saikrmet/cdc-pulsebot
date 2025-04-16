@@ -13,6 +13,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'tweets_analysis_app/**'
+      - '.github/workflows/main_tweets_analysis_app.yml'
   workflow_dispatch:
 
 jobs:
