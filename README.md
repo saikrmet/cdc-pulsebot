@@ -20,3 +20,9 @@ Real-time tweet monitoring and AI-powered analysis platform for surfacing public
 <br>
 
 ![Architecture Diagram](docs/PulseBotArchDiagram.png)
+
+## Pipelines
+
+### A - Tweet Ingestion and Indexing
+### B - AI Enrichment and Vector Embedding
+### C - Dashboard and Chat App Workflow
