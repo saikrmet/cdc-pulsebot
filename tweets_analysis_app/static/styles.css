@@ -553,6 +553,18 @@ li.tweet-card:hover {
   justify-content: space-between;
 }
 
+.questionInputContainer.disabled {
+  background-color: #f0f0f0;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.questionInputContainer.disabled textarea {
+  background-color: #f0f0f0;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 .questionInputTextArea {
   width: 100%;
 
