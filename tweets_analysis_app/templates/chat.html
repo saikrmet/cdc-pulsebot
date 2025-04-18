@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}CDC Tweets Chat{% endblock %}
+{% block title %}CDC PulseBot Chat{% endblock %}
 
 {% block content %}
 <header class="chat-header">
-  <h1 class="page-header">CDC Tweets Chat</h1>
-  <p class="page-subheader">Discover what people are saying about the Centers for Disease Control and Prevention (CDC)</p>
+  <h1 class="page-header">CDC PulseBot Chat</h1>
+  <p class="page-subheader">Identify emerging symptoms, public concerns, and early trends about the CDC in real time</p>
   <button id="clearChatButton" class="clear-chat-button" type="button" title="Clear chat">
       <i class="fa-solid fa-trash-can"></i>
       <span>Clear Chat</span>
@@ -18,7 +18,7 @@
 
 <footer class="chat-footer">
   <form id="chatForm" class="chat-form" onsubmit="handleSubmit(event)">
-  <div class="questionInputContainer">
+  <div id="questionInput" class="questionInputContainer">
         <textarea id="chatInput" class="questionInputTextArea" 
                   placeholder="Ask a question..."
                   maxlength="1000"
@@ -41,6 +41,7 @@ const autocompleteBox = document.getElementById("autocompleteBox");
 const chatForm = document.getElementById("chatForm");
 const clearInputBtn = document.getElementById("clearInputButton");
 const clearChatBtn = document.getElementById("clearChatButton");
+const questionInput = document.getElementById("questionInput")
 
 let currentController = null;
 
@@ -48,7 +49,8 @@ async function handleSubmit(event) {
     event.preventDefault();
     const userMsg = chatInput.value.trim();
     if (!userMsg) return;
-
+    chatInput.disabled = true;
+    questionInput.classList.add("disabled")
     appendUserMessage(userMsg);
     chatInput.value = "";
     autocompleteBox.innerHTML = "";
@@ -56,8 +58,6 @@ async function handleSubmit(event) {
 
     if (currentController) currentController.abort();
     currentController = new AbortController();
-
-    
 
     try {
         const response = await fetch("/chat", {
@@ -67,23 +67,26 @@ async function handleSubmit(event) {
             headers: { "Content-Type": "application/json" }
         });
 
+        let {assistantDiv, textContainer} = appendAssistantMessage();
+
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
-        let buffer = "", citationData = [], followupData = [];
+        let doneReading = false;
+        let buffer = "", citationData = [], followupData = [], markdownBuffer = "";
 
-        let {assistantDiv, textContainer} = appendAssistantMessage();
-        let markdownBuffer = "";
-
-        while (true) {
+        while (!doneReading) {
             const { value, done } = await reader.read();
             if (done) break;
             buffer += decoder.decode(value, { stream: true });
 
-            const chunks = buffer.split("\n").filter(line => line.trim() !== "");
-            for (const line of chunks) {
+            const lines = buffer.split("\n")
+            buffer = lines.pop()
+            for (const line of lines) {
+                if (!line.trim()) continue;
                 const parsed = JSON.parse(line);
-                const delta = parsed.choices?.[0]?.delta;
-                if (delta?.content) {
+                const choice = parsed.choices?.[0];
+                const delta = choice?.delta || {}
+                if (delta.content) {
 
                     for (let i = 0; i < delta.content.length; i++) {
                         const char = delta.content[i]
@@ -93,18 +96,34 @@ async function handleSubmit(event) {
                         scrollToBottomSmooth()
                     }
                 }
-                if (parsed.choices?.[0]?.context) {
-                    citationData = parsed.choices[0].context.data_points || [];
-                    followupData = parsed.choices[0].context.followup_questions || [];
+                if (choice.context) {
+                    citationData = choice.context.data_points || [];
+                    followupData = choice.context.followup_questions || [];
                 }
+
+                if (choice.finish_reason === "stop") {
+                    doneReading = true;
+                    console.log("STOPPPPPPP")
+                    break
+                }
+
             }
 
-            buffer = "";
         }
+
+        await reader.cancel()
+        buffer = ""
+        textContainer.innerHTML = marked.parse(markdownBuffer);
+        chatInput.disabled = false;
+        questionInput.classList.remove("disabled")
 
         if (citationData.length) appendCitations(assistantDiv, citationData);
         if (followupData.length) appendFollowups(assistantDiv, followupData);
+        
+
+        currentController = null;
         scrollToBottomSmooth()
+
 
     } catch (err) {
         if (err.name === "AbortError") return;
