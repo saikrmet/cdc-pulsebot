@@ -1,0 +1,90 @@
+{
+    "name": "cdc-tweets-indexer-05-01-2025",
+    "dataSourceName": "cdc-tweets-datasource-05-01-2025",
+    "targetIndexName": "cdc-tweets-index-05-01-2025",
+    "skillsetName": "cdc-tweets-skillset-05-01-2025",
+    "parameters": {
+        "maxFailedItems": -1,
+        "maxFailedItemsPerBatch": -1,
+        "configuration": {
+            "dataToExtract": "contentAndMetadata",
+            "parsingMode": "jsonArray"
+        }
+    },
+    "fieldMappings": [
+        {
+            "sourceFieldName": "id",
+            "targetFieldName": "id"
+        },
+        {
+            "sourceFieldName": "text",
+            "targetFieldName": "text"
+        },
+        {
+            "sourceFieldName": "chunk_index",
+            "targetFieldName": "chunk_index"
+        },
+        {
+            "sourceFieldName": "created_at",
+            "targetFieldName": "created_at"
+        },
+        {
+            "sourceFieldName": "author_id",
+            "targetFieldName": "author_id"
+        },
+        {
+            "sourceFieldName": "username",
+            "targetFieldName": "username"
+        },
+        {
+            "sourceFieldName": "conversation_id",
+            "targetFieldName": "conversation_id"
+        },
+        {
+            "sourceFieldName": "source_url",
+            "targetFieldName": "source_url"
+        }, 
+        {
+            "sourceFieldName": "like_count",
+            "targetFieldName": "like_count"
+        }, 
+        {
+            "sourceFieldName": "retweet_count",
+            "targetFieldName": "retweet_count"
+        }, 
+        {
+            "sourceFieldName": "quote_count",
+            "targetFieldName": "quote_count"
+        }, 
+        {
+            "sourceFieldName": "reply_count",
+            "targetFieldName": "reply_count"
+        }
+    ],
+    "outputFieldMappings": [
+        {
+            "sourceFieldName": "/document/language",
+            "targetFieldName": "language"
+        },
+        {
+            "sourceFieldName": "/document/sentiment",
+            "targetFieldName": "sentiment"
+        },
+        {
+            "sourceFieldName": "/document/keyPhrases",
+            "targetFieldName": "keyPhrases"
+        },
+        {
+            "sourceFieldName": "/document/linkedEntities/*/name",
+            "targetFieldName": "linked_entities"
+        },
+        {
+            "sourceFieldName": "/document/linkedEntities/*/url",
+            "targetFieldName": "linked_entity_urls"
+        }, 
+        {
+            "sourceFieldName": "/document/embedding/*",
+            "targetFieldName": "text_vector"
+        }
+    ]
+}

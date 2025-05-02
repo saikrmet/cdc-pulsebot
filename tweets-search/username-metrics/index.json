@@ -1,0 +1,250 @@
+{
+    "name": "cdc-tweets-index-05-01-2025",
+    "fields": [
+        {
+            "name": "id",
+            "type": "Edm.String",
+            "key": true,
+            "searchable": false,
+            "filterable": false,
+            "sortable": false,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "text",
+            "type": "Edm.String",
+            "searchable": true,
+            "filterable": false,
+            "sortable": false,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "chunk_index",
+            "type": "Edm.Int32",
+            "searchable": false,
+            "filterable": false,
+            "sortable": false,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "created_at",
+            "type": "Edm.DateTimeOffset",
+            "searchable": false,
+            "filterable": true,
+            "sortable": true,
+            "facetable": true,
+            "retrievable": true
+        },
+        {
+            "name": "author_id",
+            "type": "Edm.String",
+            "searchable": false,
+            "filterable": true,
+            "sortable": false,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "username",
+            "type": "Edm.String",
+            "searchable": false,
+            "filterable": true,
+            "sortable": false,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "conversation_id",
+            "type": "Edm.String",
+            "searchable": false,
+            "filterable": true,
+            "sortable": false,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "source_url",
+            "type": "Edm.String",
+            "searchable": false,
+            "filterable": false,
+            "sortable": false,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "like_count",
+            "type": "Edm.Int32",
+            "searchable": false,
+            "filterable": true,
+            "sortable": true,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "retweet_count",
+            "type": "Edm.Int32",
+            "searchable": false,
+            "filterable": true,
+            "sortable": true,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "quote_count",
+            "type": "Edm.Int32",
+            "searchable": false,
+            "filterable": true,
+            "sortable": true,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "reply_count",
+            "type": "Edm.Int32",
+            "searchable": false,
+            "filterable": true,
+            "sortable": true,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "language",
+            "type": "Edm.String",
+            "searchable": false,
+            "filterable": true,
+            "sortable": false,
+            "facetable": true,
+            "retrievable": true
+        },
+        {
+            "name": "sentiment",
+            "type": "Edm.String",
+            "searchable": false,
+            "filterable": true,
+            "sortable": false,
+            "facetable": true,
+            "retrievable": true
+        },
+        {
+            "name": "keyPhrases",
+            "type": "Collection(Edm.String)",
+            "searchable": true,
+            "filterable": false,
+            "sortable": false,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "linked_entities",
+            "type": "Collection(Edm.String)",
+            "searchable": true,
+            "filterable": true,
+            "sortable": false,
+            "facetable": true,
+            "retrievable": true
+        },
+        {
+            "name": "linked_entity_urls",
+            "type": "Collection(Edm.String)",
+            "searchable": false,
+            "filterable": false,
+            "sortable": false,
+            "facetable": false,
+            "retrievable": true
+        },
+        {
+            "name": "text_vector",
+            "type": "Collection(Edm.Single)",
+            "searchable": true,
+            "filterable": false,
+            "sortable": false,
+            "facetable": false,
+            "retrievable": true,
+            "dimensions": 1536,
+            "vectorSearchProfile": "hnsw-profile"
+        }
+    ],
+    "suggesters": [
+        {
+            "name": "sg",
+            "searchMode": "analyzingInfixMatching",
+            "sourceFields": [
+                "keyPhrases",
+                "linked_entities"
+            ]
+        }
+    ],
+    "vectorSearch": {
+        "algorithms": [
+            {
+                "name": "cosine-algo",
+                "kind": "hnsw",
+                "hnswParameters": {
+                    "metric": "cosine",
+                    "m": 4,
+                    "efConstruction": 400,
+                    "efSearch": 500
+                }
+            }
+        ],
+        "profiles": [
+            {
+                "name": "hnsw-profile",
+                "algorithm": "cosine-algo",
+                "vectorizer": "openai-embedding-3-small",
+                "compression": "scalarquant"
+            }
+        ],
+        "vectorizers": [
+            {
+                "name": "openai-embedding-3-small",
+                "kind": "azureOpenAI",
+                "azureOpenAIParameters": {
+                    "resourceUri": "https://openai-cdc-tweets-analysis-dev-eus.openai.azure.com",
+                    "deploymentId": "text-embedding-3-small-8KTPM",
+                    "modelName": "text-embedding-3-small"
+                }
+            }
+        ],
+        "compressions": [
+            {
+                "name": "scalarquant",
+                "kind": "scalarQuantization",
+                "truncationDimension": 2,
+                "scalarQuantizationParameters": {
+                    "quantizedDataType": "int8"
+                },
+                "rescoringOptions": {
+                    "enableRescoring": true,
+                    "defaultOversampling": 10,
+                    "rescoreStorageMethod": "preserveOriginals"
+                }
+            }
+        ]
+    },
+    "semantic": {
+        "configurations": [
+            {
+                "name": "semantic-config",
+                "prioritizedFields": {
+                    "prioritizedContentFields": [
+                        {
+                            "fieldName": "text"
+                        }
+                    ],
+                    "prioritizedKeywordsFields": [
+                        {
+                            "fieldName": "keyPhrases"
+                        },
+                        {
+                            "fieldName": "linked_entities"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
