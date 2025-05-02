@@ -48,10 +48,10 @@ def main(dailytimer: func.TimerRequest) -> None:
 
     # The number of total tweets pulled is equal to max_results x num_pages
     # Variable for number of tweets per page
-    max_results = 20
+    max_results = 100
 
     # Variable for number of pages
-    num_pages = 1
+    num_pages = 4
 
     # Variable for number of tweets to add to index
     num_top_tweets = 5
@@ -77,7 +77,7 @@ def main(dailytimer: func.TimerRequest) -> None:
 
     twitter_token = keyvault_client.get_secret("TWITTER-BEARER-TOKEN").value
 
-    all_tweets = pull_tweets(twitter_token=twitter_token, max_results=max_results, 
+    all_tweets, id_to_username_map = pull_tweets(twitter_token=twitter_token, max_results=max_results, 
                              num_pages=num_pages)
     
     logging.info("Pulled {} on {}.".format(len(all_tweets), 
@@ -90,7 +90,8 @@ def main(dailytimer: func.TimerRequest) -> None:
 
     chunks = get_chunked_tweets(tweets=all_tweets, chunk_size=chunk_size, 
                                 chunk_overlap=chunk_overlap, 
-                                encoding_model=encoding_model)
+                                encoding_model=encoding_model, 
+                                id_to_username_map=id_to_username_map)
     # logging.info("Chunked top {} tweets into {} total chunks"
     #              .format(num_top_tweets, len(chunks)))
     
@@ -108,11 +109,10 @@ def main(dailytimer: func.TimerRequest) -> None:
     logging.info("Uploaded {} chunks to path {}".format(len(chunks), blob_path))
 
     search_endpoint = keyvault_client.get_secret("SEARCH-ENDPOINT").value
-    search_key = keyvault_client.get_secret("SEARCH-KEY").value
     indexer_name = keyvault_client.get_secret("SEARCH-INDEXER-NAME").value
 
     indexer_client = SearchIndexerClient(endpoint=search_endpoint, 
-                                         credential=AzureKeyCredential(search_key))
+                                         credential=DefaultAzureCredential())
     try:
         indexer_client.run_indexer(name=indexer_name)
         logging.info("Succesfully ran indexer {}".format(indexer_name))
@@ -121,7 +121,8 @@ def main(dailytimer: func.TimerRequest) -> None:
 
 
 def get_chunked_tweets(tweets: list[any], chunk_size: int, 
-                       chunk_overlap: int, encoding_model: str) -> list[str]:
+                       chunk_overlap: int, encoding_model: str, 
+                       id_to_username_map: dict) -> list[str]:
     """Function that returns tweet chunks from the list of tweets.
 
     Parameters:
@@ -153,11 +154,19 @@ def get_chunked_tweets(tweets: list[any], chunk_size: int,
     chunks = []
     for tweet in tweets:
         tweet_id = getattr(tweet, "id", None)
-        if tweet_id is None:
+        if not tweet_id:
+            continue
+
+        author_id = getattr(tweet, "author_id", None)
+        if not author_id:
+            continue
+
+        username = id_to_username_map.get(author_id, None)
+        if not username:
             continue
 
         tweet_text = getattr(tweet, "text", None)
-        if tweet_text is None:
+        if not tweet_text:
             continue
 
         if not is_about_cdc(tweet_text=tweet_text):
@@ -165,6 +174,15 @@ def get_chunked_tweets(tweets: list[any], chunk_size: int,
 
         if getattr(tweet, "possibly_sensitive", False):
             continue
+
+        metrics = getattr(tweet, "public_metrics", None)
+        if not metrics:
+            continue
+
+        like_count = metrics.get("like_count", 0) 
+        retweet_count = metrics.get("retweet_count", 0)
+        quote_count = metrics.get("quote_count", 0)
+        reply_count = metrics.get("reply_count", 0)
 
         chunking_result = chunk_text(text=tweet_text, chunk_size=chunk_size,
                                            chunk_overlap=chunk_overlap, 
@@ -177,16 +195,19 @@ def get_chunked_tweets(tweets: list[any], chunk_size: int,
                     "text": chunked_text,
                     "chunk_index": i,
                     "created_at": tweet.created_at.isoformat(),
-                    "author_id": tweet.author_id,
+                    "author_id": author_id,
+                    "username": username,
                     "conversation_id": getattr(tweet, "conversation_id", None),
                     "source_url": f"https://twitter.com/i/web/status/{tweet_id}",
-                    "popularity_score": score_tweet(tweet),
+                    "like_count": like_count,
+                    "retweet_count": retweet_count,
+                    "quote_count": quote_count,
+                    "reply_count": reply_count,
                     "ingestion_date": now.isoformat()
                     # "hashtags": hashtags_cleaned,
                     # "media_urls": media_urls_cleaned
                 }
             )
-
     return chunks
 
 def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[any]:
@@ -211,25 +232,39 @@ def pull_tweets(twitter_token: str, max_results: int, num_pages: int) -> list[an
         twitter_client.search_recent_tweets,
         query="(\"CDC\" OR \"Centers for Disease Control\" OR \"Centers for Disease Control and Prevention\" \
                 OR \"@CDCgov\" OR \"#CDC\") -is:retweet -is:quote -is:reply lang:en",
-        tweet_fields=["id", "text", "created_at", "author_id", "entities", 
+        tweet_fields=["id", "text", "created_at", "author_id", 
                       "possibly_sensitive", "conversation_id", "public_metrics"], 
-        sort_order="relevancy",
+        expansions=["author_id"],
+        user_fields=["username"],
         start_time=start_time.isoformat(),
         end_time=end_time.isoformat(), 
         max_results=max_results
     )
 
-    all_tweets = []
-    for page in paginator:
-        if not page.data:
-            continue
-        all_tweets.extend(page.data)
-
-        # Ensures we do not surpass tweet limit
-        if len(all_tweets) >= (max_results * num_pages):
+    tweets = []
+    id_to_username_map = {}
+    for i, page in enumerate(paginator):
+        if i >= num_pages:
             break
 
-    return all_tweets
+        if not page.data:
+            continue
+        users = page.includes.get("users", []) if hasattr(page, "includes") else []
+        for user in users:
+            username = getattr(user, "username", None)
+            if not username:
+                print("No username")
+                continue
+            user_id = getattr(user, "id", None)
+            if not user_id:
+                print("No id")
+                continue
+            id_to_username_map[user_id] = username
+        tweets.extend(page.data)
+        print(len(tweets))
+
+    print("Pulled tweets")
+    return tweets, id_to_username_map
 
 
 def score_tweet(tweet: any) -> int:
