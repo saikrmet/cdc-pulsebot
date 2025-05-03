@@ -60,12 +60,18 @@
     <li class="tweet-card">
       <a href="{{ tweet.source_url }}" target="_blank" style="text-decoration: none; color: inherit;">
         <div class="tweet-header">
-          <strong class="tweet-author">User ID: {{ tweet.author_id }}</strong><br>
+          <strong class="tweet-author">@{{ tweet.username }}</strong><br>
           <small class="tweet-date">{{ tweet.created_at }}</small>
         </div>
         <p class="tweet-text">{{ tweet.text }}</p>
         <div class="tweet-footer">
-          <small>Language: {{ tweet.language }} | Popularity Score: {{ tweet.popularity_score }}</small>
+          <small>Language: {{ tweet.language }}</small>
+        </div>
+        <div class="tweet-metrics">
+          <span><i class="fa-solid fa-heart"></i> {{ tweet.like_count }}</span>
+          <span><i class="fa-solid fa-retweet"></i> {{ tweet.retweet_count }}</span>
+          <span><i class="fa-solid fa-quote-right"></i> {{ tweet.quote_count }}</span>
+          <span><i class="fa-regular fa-comment"></i> {{ tweet.reply_count }}</span>
         </div>
       </a>
     </li>

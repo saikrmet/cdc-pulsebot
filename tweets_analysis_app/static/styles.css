@@ -237,6 +237,24 @@ li.tweet-card:hover {
   color: #999;
 }
 
+.tweet-metrics {
+  display: flex;
+  gap: 15px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.tweet-metrics span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tweet-metrics i {
+  color: #888;
+}
+
 /* === Chat Layout === */
 /*  */
 .chat-header {
