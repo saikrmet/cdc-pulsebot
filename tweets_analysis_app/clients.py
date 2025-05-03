@@ -1,12 +1,12 @@
 import os
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 from azure.search.documents.aio import SearchClient
 from azure.keyvault.secrets.aio import SecretClient
 from openai import AsyncAzureOpenAI
 from azure.core.credentials import AzureKeyCredential
 from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
 from pathlib import Path
-# load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
 
 _azure_clients_instance = None
 
@@ -26,6 +26,7 @@ class AzureClients:
     async def init_clients(self):
         async with self._secret_client:
             search_endpoint = (await self._secret_client.get_secret("SEARCH-ENDPOINT")).value
+            search_key = (await self._secret_client.get_secret("SEARCH-KEY")).value
             search_index_name = (await self._secret_client.get_secret("SEARCH-INDEX-NAME")).value
             openai_endpoint = (await self._secret_client.get_secret("OPENAI-ENDPOINT")).value
             openai_api_version = (await self._secret_client.get_secret("OPENAI-API-VERSION")).value
@@ -34,7 +35,7 @@ class AzureClients:
             self.search_suggester = (await self._secret_client.get_secret("SEARCH-SUGGESTER-NAME")).value
 
             self._search_client = SearchClient(endpoint=search_endpoint, index_name=search_index_name,
-                                        credential=DefaultAzureCredential())
+                                        credential=AzureKeyCredential(search_key))
 
             self._openai_client = AsyncAzureOpenAI(azure_endpoint=openai_endpoint, 
                                                 azure_ad_token_provider=self._token_provider,
