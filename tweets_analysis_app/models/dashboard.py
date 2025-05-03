@@ -48,10 +48,13 @@ class EntityCountObj(BaseModel):
 class PopularTweet(BaseModel):
     text: str
     created_at: DatetimeString
-    author_id: str
+    username: str
     source_url: str
     language: LanguageLabel
-    popularity_score: float
+    like_count: int
+    retweet_count: int
+    quote_count: int
+    reply_count: int
 
 # Model for /dashboard page response
 class DashboardData(BaseModel):

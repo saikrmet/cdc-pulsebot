@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 search_query = "Centers for Disease Control and Prevention^10 OR (CDC AND (vaccine OR disease OR outbreak OR infection OR 'public health' OR COVID OR advisory OR confirmed OR director))^5"
 search_query_alt = "((Centers for Disease Control and Prevention)^10 OR (CDC AND (COVID OR vaccine OR outbreak OR confirmed OR public health OR disease OR funding OR director OR alert OR cases OR advisory OR TB OR nominate OR lead OR picks OR US OR USA OR nurses OR pharmacists OR delegates OR leadership OR documents))) AND NOT (Africa CDC OR CDC_TB OR CDC_Europe OR CDC_Upland OR Vehicle Technician OR job alert OR @CDC_Zimbabwe OR @LoadedLions_CDC)"
 search_threshold = 3.0
-# x = ["text", "source_url", "popularity_score", "language", "keyPhrases", "linked_entities", "linked_entity_urls"]
 
 
 @cached()
@@ -40,15 +39,15 @@ async def get_dashboard_data(start_date: str, end_date: str) -> DashboardData:
     popular_results = await search_client.search(
         search_text=search_query,
         filter=filter_query,
-        order_by=["popularity_score desc"], 
         top=25,
-        select=["text", "created_at", "author_id", "source_url", "popularity_score", "language"]
+        select=["text", "created_at", "username", "source_url", "like_count", "retweet_count", "quote_count", "reply_count", "language"]
     )
 
     filtered_dashboard_results, date_counts, sentiment_label_counts, language_counts, entity_counts = \
         await filter_dashboard_results(results=dashboard_results, threshold=search_threshold)
 
     filtered_popular_results = await filter_popular_results(results=popular_results, threshold=search_threshold, top=5)
+    sorted_popular_results = sort_filtered_results_by_metrics(filtered_popular_results)
 
     date_sentiment_scores = calculate_date_sentiment_scores(filtered_dashboard_results)
 
@@ -65,7 +64,7 @@ async def get_dashboard_data(start_date: str, end_date: str) -> DashboardData:
         date_sentiment_scores=date_sentiment_scores,
         language_counts=language_counts,
         entity_counts=entity_counts,
-        popular_tweets=filtered_popular_results
+        popular_tweets=sorted_popular_results
     )
 
     
@@ -80,10 +79,14 @@ async def filter_popular_results(results: AsyncSearchItemPaged[Dict], threshold:
             filtered_results.append(PopularTweet(
                 text=result.get("text", None), 
                 created_at=result.get("created_at", None), 
-                author_id = result.get("author_id", None), 
+                username=result.get("username", None), 
                 source_url=result.get("source_url", None),
                 language=result.get("language", None), 
-                popularity_score=result.get("popularity_score", None)))
+                like_count=result.get("like_count", None),
+                retweet_count=result.get("retweet_count", None),
+                quote_count=result.get("quote_count", None),
+                reply_count=result.get("reply_count", None)
+            ))
             i += 1
     
     return filtered_results
@@ -178,6 +181,35 @@ def calculate_date_sentiment_scores(results: List[dict]) -> List[DateSentimentSc
     date_sentiment_scores.sort(key=lambda x: datetime.fromisoformat(x.date))
 
     return date_sentiment_scores
+
+
+def sort_filtered_results_by_metrics(filtered_results: List[PopularTweet]) -> List[PopularTweet]:
+    """
+    Sorts the filtered results list using a custom scoring metric.
+
+    The score is calculated as:
+        score = like_count * 0.5 + retweet_count * 1.0 + quote_count * 0.3 + reply_count * 0.2
+
+    Args:
+        filtered_results (List[PopularTweet]): List of PopularTweet objects.
+
+    Returns:
+        List[PopularTweet]: Sorted list of PopularTweet objects.
+    """
+    def calculate_score(tweet: PopularTweet) -> float:
+        metrics = {
+            "like_count": tweet.like_count or 0,
+            "retweet_count": tweet.retweet_count or 0,
+            "quote_count": tweet.quote_count or 0,
+            "reply_count": tweet.reply_count or 0
+        }
+        score = metrics.get("like_count", 0) * 0.5 \
+            + metrics.get("retweet_count", 0) * 1.0 \
+            + metrics.get("quote_count", 0) * 0.3 \
+            + metrics.get("reply_count", 0) * 0.2
+        return score
+
+    return sorted(filtered_results, key=calculate_score, reverse=True)
 
 # async def consolidate_phrases(results: List[dict]) -> Dict[str, int]:
 #     flattened_phrases = []
