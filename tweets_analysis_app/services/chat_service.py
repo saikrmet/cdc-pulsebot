@@ -122,14 +122,19 @@ async def rewrite_query(messages: List[Message]) -> str:
     rewrite_messages = [{"role": "system", "content": rewrite_system_prompt}] + rewrite_few_shots
     rewrite_messages.append({"role": "user", "content": f"Generate search query for: {user_query}"})
 
-    completion = await openai_client.chat.completions.create(
-        model=clients.openai_completions_deployment,
-        messages=rewrite_messages,
-        temperature=0.0,
-        max_tokens=100,
-    )
 
-    response = completion.choices[0].message.content.strip()
+    try:
+        completion = await openai_client.chat.completions.create(
+            model=clients.openai_completions_deployment,
+            messages=rewrite_messages,
+            temperature=0.0,
+            max_tokens=100,
+        )
+        logging.info(f"OpenAI response: {completion}")
+        response = completion.choices[0].message.content.strip()
+    except Exception as e:
+        logging.exception("Error in rewrite_query: %s", e)
+        raise
 
     if not response or response == "0":
         return user_query
@@ -142,99 +147,100 @@ async def stream_chat_response(request: ChatRequest) -> AsyncGenerator[str, None
 
     user_query = request.messages[-1].content
     logging.info(f"User query: {user_query}")
-    rewritten_query = await rewrite_query(request.messages)
-    logging.info(f"Rewritten query: {rewritten_query}")
+    try:
+        rewritten_query = await rewrite_query(request.messages)
+        logging.info(f"Rewritten query: {rewritten_query}")
 
+        results = await search_client.search(
+            vector_queries=[VectorizableTextQuery(
+                text=rewritten_query, 
+                k_nearest_neighbors=10,
+                fields="text_vector"
+            )], 
+            filter="language eq 'en'",
+            select=["text", "created_at", "source_url"]
+        )
 
+        docs = [doc async for doc in results]
+        context = "\n".join([f"- {doc.get('text')}" for doc in docs])
+        logging.info(context)
 
-    results = await search_client.search(
-        vector_queries=[VectorizableTextQuery(
-            text=rewritten_query, 
-            k_nearest_neighbors=10,
-            fields="text_vector"
-        )], 
-        filter="language eq 'en'",
-        select=["text", "created_at", "source_url"]
-    )
+        rag_messages = [{"role": "system", "content": rag_system_prompt}]
 
-    docs = [doc async for doc in results]
-    context = "\n".join([f"- {doc.get('text')}" for doc in docs])
-    logging.info(context)
+        rag_messages += [msg.model_dump() for msg in request.messages[:-1]]
 
-    rag_messages = [{"role": "system", "content": rag_system_prompt}]
+        rag_messages.append({
+            "role": "user",
+            "content": f"{user_query}\n\nContext:\n{context}"
+        })
 
-    rag_messages += [msg.model_dump() for msg in request.messages[:-1]]
-
-    rag_messages.append({
-        "role": "user",
-        "content": f"{user_query}\n\nContext:\n{context}"
-    })
-
-    yield {
-        "choices": [{
-            "delta": {"role": "assistant"},
-            "index": 0,
-        }],
-        "object": "chat.completion.chunk"
-    }
-
-    followup_started = False
-    followup_content = ""
-    stream = await openai_client.chat.completions.create(
-        model=clients.openai_completions_deployment,
-        messages=rag_messages,
-        temperature=0.7, 
-        stream=True
-    )
-
-    async for event_chunk in stream:
-        chunk = event_chunk.model_dump()
-        if not chunk.get("choices") or not chunk["choices"]:
-            continue 
-        delta = chunk["choices"][0]["delta"]
-        content = delta.get("content") or ""
-        logging.info(f"Content: {content}")
-        if "<<" in content:
-            followup_started = True
-            before = content[:content.index("<<")].strip()
-            after = content[content.index("<<"):].strip()
-            if before:
-                chunk["choices"][0]["delta"]["content"] = before
-                yield chunk
-            followup_content += after
-        elif followup_started:
-            followup_content += content
-        else:
-            yield chunk
-        
-    citations = [
-        {
-            "url": doc.get("source_url"), 
-            "snippet": re.sub(r'\s+', ' ', doc.get("text", "")).strip(), 
-            "date": doc.get("created_at")
+        yield {
+            "choices": [{
+                "delta": {"role": "assistant"},
+                "index": 0,
+            }],
+            "object": "chat.completion.chunk"
         }
-        for doc in docs if doc.get("source_url")
-    ]
 
-    followup_questions = []
-    if followup_content:
-        logging.info(followup_content)
-        followup_questions = extract_followups(followup_content)
-        logging.info(followup_questions)
-        
-    yield {
-        "choices": [{
-            "delta": {"role": "assistant"},
-            "context": {
-                "data_points": citations,
-                "followup_questions": followup_questions
-            },
-            "index": 0,
-            "finish_reason": "stop"
-        }],
-        "object": "chat.completion.chunk"
-    }
-        
+        followup_started = False
+        followup_content = ""
+        stream = await openai_client.chat.completions.create(
+            model=clients.openai_completions_deployment,
+            messages=rag_messages,
+            temperature=0.7, 
+            stream=True
+        )
+
+        async for event_chunk in stream:
+            chunk = event_chunk.model_dump()
+            if not chunk.get("choices") or not chunk["choices"]:
+                continue 
+            delta = chunk["choices"][0]["delta"]
+            content = delta.get("content") or ""
+            logging.info(f"Content: {content}")
+            if "<<" in content:
+                followup_started = True
+                before = content[:content.index("<<")].strip()
+                after = content[content.index("<<"):].strip()
+                if before:
+                    chunk["choices"][0]["delta"]["content"] = before
+                    yield chunk
+                followup_content += after
+            elif followup_started:
+                followup_content += content
+            else:
+                yield chunk
+            
+        citations = [
+            {
+                "url": doc.get("source_url"), 
+                "snippet": re.sub(r'\s+', ' ', doc.get("text", "")).strip(), 
+                "date": doc.get("created_at")
+            }
+            for doc in docs if doc.get("source_url")
+        ]
+
+        followup_questions = []
+        if followup_content:
+            logging.info(followup_content)
+            followup_questions = extract_followups(followup_content)
+            logging.info(followup_questions)
+            
+        yield {
+            "choices": [{
+                "delta": {"role": "assistant"},
+                "context": {
+                    "data_points": citations,
+                    "followup_questions": followup_questions
+                },
+                "index": 0,
+                "finish_reason": "stop"
+            }],
+            "object": "chat.completion.chunk"
+        }
+    except Exception as e:
+        logging.exception("Error in stream_chat_response: %s", e)
+        raise
 
 
 async def format_as_ndjson(r: AsyncGenerator[dict, None]) -> AsyncGenerator[str, None]:
