@@ -109,10 +109,11 @@ def main(dailytimer: func.TimerRequest) -> None:
     logging.info("Uploaded {} chunks to path {}".format(len(chunks), blob_path))
 
     search_endpoint = keyvault_client.get_secret("SEARCH-ENDPOINT").value
+    search_key = keyvault_client.get_secret("SEARCH-KEY").value
     indexer_name = keyvault_client.get_secret("SEARCH-INDEXER-NAME").value
 
     indexer_client = SearchIndexerClient(endpoint=search_endpoint, 
-                                         credential=DefaultAzureCredential())
+                                         credential=AzureKeyCredential(search_key))
     try:
         indexer_client.run_indexer(name=indexer_name)
         logging.info("Succesfully ran indexer {}".format(indexer_name))
