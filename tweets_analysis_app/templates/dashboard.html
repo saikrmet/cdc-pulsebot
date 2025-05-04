@@ -5,7 +5,6 @@
 <h1 class="page-header">CDC PulseBot Dashboard</h1>
 <p class="page-subheader">Identify emerging health topics and conversation trends involving the CDC</p>
 
-
 <form method="get" action="/dashboard" class="form-container">
   <label>
     Start Date:
@@ -78,11 +77,6 @@
     {% endfor %}
   </ul>
 </div>
-
-
-
-<!-- Chart.js -->
-
 
 <script>
   // Volume Chart
@@ -275,6 +269,24 @@ Chart.defaults.font.size = 13;
 Chart.defaults.elements.line.borderColor = '#84bfff';
 Chart.defaults.elements.line.borderWidth = 2;
 Chart.defaults.elements.point.radius = 3;
+
+const themeToggle = document.getElementById('themeToggle');
+const root = document.documentElement;
+
+themeToggle.addEventListener('change', () => {
+  if (themeToggle.checked) {
+    root.setAttribute('data-theme', 'light');
+    localStorage.setItem('theme', 'light');
+  } else {
+    root.setAttribute('data-theme', 'dark');
+    localStorage.setItem('theme', 'dark');
+  }
+});
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme') || 'dark';
+root.setAttribute('data-theme', savedTheme);
+themeToggle.checked = savedTheme === 'light';
 
 </script>
 {% endblock %}

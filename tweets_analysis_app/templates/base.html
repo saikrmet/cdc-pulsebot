@@ -23,14 +23,42 @@
     <div class="logo-container">
         <a href="/"><img src="/static/JRSS_Logo.png" alt="JRSS Logo" class="logo" /></a>
     </div>
-    <nav>
+    <nav class="nav">
       <a href="/dashboard" class="nav-button">Dashboard</a>
       <a href="/chat" class="nav-button">Chat</a>
+      <!-- Theme Toggle -->
+      <div class="theme-toggle">
+        <label class="toggle-switch">
+          <input type="checkbox" id="themeToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="theme-label">Light Mode</span>
+      </div>
     </nav>
     
   </header>
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const root = document.documentElement;
+
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                root.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                root.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        root.setAttribute('data-theme', savedTheme);
+        themeToggle.checked = savedTheme === 'light';
+    </script>
 </body>
 
 

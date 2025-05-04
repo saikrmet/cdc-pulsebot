@@ -1,18 +1,111 @@
+/* Define theme variables */
+:root {
+  --background-color: #121212;
+  --text-color: #e0e0e0;
+  --header-text-color: #f0f0f0;
+  --subheader-text-color: #aaa;
+  --card-background: #1d1f24;
+  --button-background: #2196f3;
+  --button-hover: #1976d2;
+  --link-color: #64b5f6;
+  --input-background: #0e0e11;
+  --input-text-color: #e0e0e0;
+  --border-color: #444;
+  --tweet-card-background: #1c1c1c;
+  --tweet-card-border: #2a2a2a;
+  --tweet-author-color: #90caf9;
+  --tweet-date-color: #888;
+  --tweet-text-color: #eee;
+  --tweet-footer-color: #999;
+  --assistant-message-background: #1e1e1e;
+  --label-color: #bbbbbb;
+  --assistant-message-border: #2c2c2c;
+  --assistant-message-text-color: #eee;
+}
+
+:root[data-theme='light'] {
+  --background-color: #f2f2f2;
+  --text-color: #000000;
+  --header-text-color: #000000;
+  --subheader-text-color: #555;
+  --card-background: #f9f9f9;
+  --button-background: #007bff;
+  --button-hover: #0056b3;
+  --link-color: #007bff;
+  --input-background: #ffffff;
+  --input-text-color: #000000;
+  --border-color: #ccc;
+  --tweet-card-background: #f9f9f9;
+  --tweet-card-border: #ddd;
+  --tweet-author-color: #007bff;
+  --tweet-date-color: #555;
+  --tweet-text-color: #333;
+  --tweet-footer-color: #666;
+  --assistant-message-background: #f9f9f9;
+  --label-color: #333333;
+  --assistant-message-border: #ebebeb;
+  --assistant-message-text-color: #000000;
+  --followup-btn-background: #e8ebfa;
+}
+
+/* Apply theme variables */
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.chart-card {
+  background-color: var(--card-background);
+}
+
+button {
+  background-color: var(--button-background);
+  color: var(--text-color);
+}
+
+button:hover {
+  background-color: var(--button-hover);
+}
+
+a {
+  color: var(--link-color);
+}
+
 /* Header Layout */
 .nav-header {
+  background-color: #121212; /* Fixed background color */
+  color: #ffffff; /* Fixed text color */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 150px;
+    padding: 10px 150px;
   box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.3), 0px 0px 4px rgba(0, 0, 0, 0.16);
   margin-bottom: 20px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* Add spacing between nav items */
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  margin-left: 30px;
+  justify-content: center;
+  gap: 10px; /* Add spacing between the slider and the label */
+}
+
+.theme-label {
+  font-size: 1rem;
 }
 
 /* Navigation buttons, styled similar to your previous icon buttons */
 .nav-button {
   display: inline-block;
   padding: 6px 20px;
-  margin-left: 20px;
+
   font-size: 1rem;
   text-decoration: none;
   color: #333;
@@ -40,8 +133,8 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #121212;
-  color: #e0e0e0;
+  background-color: var(--background-color);
+  color: var(--text-color);
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.6;
 }
@@ -50,12 +143,12 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
-}
+  }
 
 /* Headings */
 h1, h2 {
   font-size: 2.4rem;
-  color: #ffffff;
+  color: var(--header-text-color);
   text-align: center;
   margin-bottom: 1.5rem;
 }
@@ -65,14 +158,14 @@ h3 {
   font-size: 1.5rem;
   margin-top: 0rem;
   margin-bottom: 1rem;
-  color: #e0e0e0;
+  color: var(--text-color);
 }
 
 .page-header {
   text-align: center;
   font-size: 2.5rem;
   font-weight: 700;
-  color: #f0f0f0;
+  color: var(--header-text-color);
   margin-top: 0rem;
   margin-bottom: 0.25rem;
 }
@@ -80,7 +173,7 @@ h3 {
 .page-subheader {
   text-align: center;
   font-size: 1.1rem;
-  color: #aaa;
+  color: var(--subheader-text-color);
 }
 
 
@@ -97,14 +190,14 @@ h3 {
 
 form label {
   font-weight: 600;
-  color: #bbbbbb;
+  color: var(--label-color); /* Use the theme variable for label color */
 }
 
 input[type="date"] {
-  background-color: #0e0e11;
-  color: #e0e0e0;
+  background-color: var(--input-background);
+  color: var(--input-text-color);
   color-scheme: light dark;
-  border: 1px solid #444;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-family: 'Segoe UI', Roboto, sans-serif;
   font-size: 0.9rem;
@@ -112,8 +205,8 @@ input[type="date"] {
 }
 
 button {
-  background-color: #2196f3;
-  color: white;
+  background-color: var(--button-background);
+  color: var(--text-color);
   border: none;
   padding: 0.6rem 1.2rem;
   border-radius: 6px;
@@ -122,12 +215,12 @@ button {
 }
 
 button:hover {
-  background-color: #1976d2;
+  background-color: var(--button-hover);
 }
 
 /* === Chart Containers === */
 .chart-card {
-  background-color: #1d1f24;
+  background-color: var(--card-background);
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
@@ -180,7 +273,7 @@ ul li {
 }
 
 ul li a {
-  color: #64b5f6;
+  color: var(--link-color);
   text-decoration: none;
   font-weight: 500;
 }
@@ -196,10 +289,10 @@ ul.tweet-list {
 }
 
 li.tweet-card {
-  background: #1c1c1c;
+  background: var(--tweet-card-background);
   padding: 1rem;
   border-radius: 10px;
-  border: 1px solid #2a2a2a;
+  border: 1px solid var(--tweet-card-border);
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
   margin-bottom: 1.5rem;
   transition: box-shadow 0.2s ease;
@@ -218,23 +311,23 @@ li.tweet-card:hover {
 
 .tweet-author {
   font-weight: bold;
-  color: #90caf9;
+  color: var(--tweet-author-color);
 }
 
 .tweet-date {
-  color: #888;
+  color: var(--tweet-date-color);
   font-size: 0.9rem;
 }
 
 .tweet-text {
   margin: 0.5rem 0;
-  color: #eee;
+  color: var(--tweet-text-color);
   line-height: 1.4;
 }
 
 .tweet-footer {
   font-size: 0.95rem;
-  color: #999;
+  color: var(--tweet-footer-color);
 }
 
 .tweet-metrics {
@@ -326,12 +419,12 @@ li.tweet-card:hover {
 
 .message.assistant {
   align-self: flex-start;
-  background-color: #1e1e1e;
-  color: #eee;
+  background-color: var(--assistant-message-background);
+  color: var(--assistant-message-text-color);
   border-bottom-left-radius: 4px;
   padding: 0rem 1rem 1rem;
   text-align: left;
-  border: 1px solid #2c2c2c;
+  border: 1px solid var(--assistant-message-border);
 }
 
 
@@ -598,4 +691,51 @@ li.tweet-card:hover {
   flex-direction: row;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* Toggle Switch */
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #007bff;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
 }
