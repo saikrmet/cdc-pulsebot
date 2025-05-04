@@ -60,14 +60,17 @@ async function handleSubmit(event) {
     currentController = new AbortController();
 
     try {
+        let {assistantDiv, textContainer} = appendAssistantMessage();
+
         const response = await fetch("/chat", {
             method: "POST",
             body: JSON.stringify({ messages: getMessages() }),
             signal: currentController.signal,
             headers: { "Content-Type": "application/json" }
         });
-
-        let {assistantDiv, textContainer} = appendAssistantMessage();
+        if (!response.ok) {
+            throw new Error("Network response was not ok: " + response.statusText);
+        }
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
@@ -103,7 +106,6 @@ async function handleSubmit(event) {
 
                 if (choice.finish_reason === "stop") {
                     doneReading = true;
-                    console.log("STOPPPPPPP")
                     break
                 }
 
@@ -285,6 +287,7 @@ function getMessages() {
             content: div.querySelector(".message-content").innerText
         });
     });
+    messages.pop();
     return messages;
 }
 
