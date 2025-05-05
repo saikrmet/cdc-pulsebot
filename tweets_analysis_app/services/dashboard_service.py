@@ -37,17 +37,18 @@ async def get_dashboard_data(start_date: str, end_date: str) -> DashboardData:
     )
 
     popular_results = await search_client.search(
-        search_text=search_query,
         filter=filter_query,
-        top=25,
+        scoring_profile="popularityScore",
+        top=5,
         select=["text", "created_at", "username", "source_url", "like_count", "retweet_count", "quote_count", "reply_count", "language"]
     )
 
     filtered_dashboard_results, date_counts, sentiment_label_counts, language_counts, entity_counts = \
         await filter_dashboard_results(results=dashboard_results, threshold=search_threshold)
 
-    filtered_popular_results = await filter_popular_results(results=popular_results, threshold=search_threshold, top=5)
-    sorted_popular_results = sort_filtered_results_by_metrics(filtered_popular_results)
+    scoring_popular_results = await create_popular_results(results=popular_results)
+    # filtered_popular_results = await filter_popular_results(results=popular_results, threshold=search_threshold, top=5)
+    # sorted_popular_results = sort_filtered_results_by_metrics(filtered_popular_results)
 
     date_sentiment_scores = calculate_date_sentiment_scores(filtered_dashboard_results)
 
@@ -64,9 +65,25 @@ async def get_dashboard_data(start_date: str, end_date: str) -> DashboardData:
         date_sentiment_scores=date_sentiment_scores,
         language_counts=language_counts,
         entity_counts=entity_counts,
-        popular_tweets=sorted_popular_results
+        popular_tweets=scoring_popular_results
     )
 
+async def create_popular_results(results: AsyncSearchItemPaged[Dict]) -> List[PopularTweet]:
+    popular_tweets = []
+    async for result in results:
+        popular_tweets.append(PopularTweet(
+            text=result.get("text", None), 
+            created_at=result.get("created_at", None), 
+            username=result.get("username", None), 
+            source_url=result.get("source_url", None),
+            language=result.get("language", None), 
+            like_count=result.get("like_count", None),
+            retweet_count=result.get("retweet_count", None),
+            quote_count=result.get("quote_count", None),
+            reply_count=result.get("reply_count", None)
+        ))
+    
+    return popular_tweets   
     
 async def filter_popular_results(results: AsyncSearchItemPaged[Dict], threshold: int, top: int) -> List[PopularTweet]:
     filtered_results = []
