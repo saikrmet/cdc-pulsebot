@@ -124,7 +124,7 @@ This architecture provides several security advantages:
 
 #### Networking Diagram
 
-![Networking Diagram](path-or-link-to-diagram.png)
+![Networking Diagram](docs/CDCPulseBotNetworking.png)
 
 ### Secure AI Chat with Internal Data
 
