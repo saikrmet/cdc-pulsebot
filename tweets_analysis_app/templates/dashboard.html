@@ -60,7 +60,7 @@
       <a href="{{ tweet.source_url }}" target="_blank" style="text-decoration: none; color: inherit;">
         <div class="tweet-header">
           <strong class="tweet-author">@{{ tweet.username }}</strong><br>
-          <small class="tweet-date">{{ tweet.created_at }}</small>
+          <small class="tweet-date">{{ tweet.formatted_created_at }}</small>
         </div>
         <p class="tweet-text">{{ tweet.text }}</p>
         <div class="tweet-footer">

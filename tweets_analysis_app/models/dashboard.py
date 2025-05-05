@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Dict, List, Tuple
 from tweets_analysis_app.types.annotated import PositiveCount, SentimentLabel, SentimentScore, \
     LanguageLabel, DatetimeString
+from datetime import datetime
 
 
 
@@ -56,7 +57,16 @@ class PopularTweet(BaseModel):
     quote_count: int
     reply_count: int
 
-# Model for /dashboard page response
+    @property
+    def formatted_created_at(self) -> str:
+        return datetime.strptime(self.created_at, "%Y-%m-%d").strftime("%m/%d/%Y")
+
+    def dict(self, *args, **kwargs):
+        # Override the dict method to include the formatted_created_at
+        data = super().dict(*args, **kwargs)
+        data["formatted_created_at"] = self.formatted_created_at
+        return data
+
 class DashboardData(BaseModel):
     date_counts: List[DateCountObj]
     sentiment_label_counts: List[SentimentLabelCountObj]
