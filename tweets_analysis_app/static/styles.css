@@ -463,11 +463,6 @@ li.tweet-card:hover {
   font-size: 0.9rem;
 }
 
-.citations.open {
-  background-color: #1b1b1b;
-  border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-}
 
 .toggle-citations {
   background-color: #2f80ed;
@@ -483,11 +478,10 @@ li.tweet-card:hover {
 }
 
 .citation-list li.citation-card {
-  background-color: #1c1c1c;
-  border: 1px solid #333;
+  background-color: #d1dbfa;
+  color: #000;
   border-radius: 10px;
   padding: 0.3rem 1rem;
-  color: #d0e6ff;
   transition: background-color 0.2s ease;
   cursor: pointer;
   font-size: inherit;
@@ -497,7 +491,7 @@ li.tweet-card:hover {
 }
 
 .citation-list li.citation-card:hover {
-  background-color: #2a2a2a;
+  background-color: #a9bfff;
 }
 
 .citation-text {
@@ -509,12 +503,12 @@ li.tweet-card:hover {
 .citation-date {
   align-self: flex-end;
   font-size: 0.75rem;
-  color: #888;
+  color: #555;
 }
 
 .source-label {
   font-weight: bold;
-  color: #7cbcff;
+  color: #2f80ed;
 }
 
 .chat-footer {
@@ -738,4 +732,35 @@ input:checked + .slider {
 
 input:checked + .slider:before {
   transform: translateX(26px);
+}
+
+
+.initial-questions {
+    text-align: center;
+    align-items: center; /* Center the buttons horizontally */
+
+}
+
+.initial-questions p {
+    font-size: 1.1rem; /* Larger text for the heading */
+    margin-bottom: 10px;
+}
+
+.initial-question-btn {
+    max-width: 500px; /* Limit the button width */
+    margin: 10px 10px; /* More spacing between buttons */
+    padding: 20px; /* Larger padding for bigger buttons */
+    font-size: 1rem; /* Larger text size */
+    text-align: center;
+    color: #ffffff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 10px; /* Slightly larger border radius */
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.initial-question-btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05); /* Slightly enlarge on hover */
 }

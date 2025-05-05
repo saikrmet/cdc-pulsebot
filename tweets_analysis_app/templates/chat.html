@@ -11,6 +11,13 @@
       <i class="fa-solid fa-trash-can"></i>
       <span>Clear Chat</span>
   </button>
+
+  <div class="initial-questions">
+    <p>Try asking:</p>
+    <button class="initial-question-btn" type="button">What are the latest CDC updates?</button>
+    <button class="initial-question-btn" type="button">What are public concerns about the CDC?</button>
+    <button class="initial-question-btn" type="button">What symptoms are trending?</button>
+  </div>
 </header>
 
 <div class="chat-viewport">
@@ -32,6 +39,7 @@
       </div>
   </form>
 </footer>
+
 
 
 <script>
@@ -305,49 +313,34 @@ chatInput.addEventListener("keydown", function(e) {
 
 })
 
+function toggleInitialQuestions(show) {
+    const initialQuestions = document.querySelector(".initial-questions");
+    if (initialQuestions) {
+        initialQuestions.style.display = show ? "block" : "none";
+    }
+}
+
+document.querySelectorAll(".initial-question-btn").forEach(button => {
+    button.addEventListener("click", () => {
+        chatInput.value = button.textContent;
+        toggleInitialQuestions(false); // Hide initial questions
+        chatForm.requestSubmit();
+    });
+});
+
+chatForm.addEventListener("submit", () => {
+    toggleInitialQuestions(false); // Hide initial questions
+});
+
 clearChatBtn.addEventListener("click", () => {
     if (currentController) currentController.abort();
     chatBox.innerHTML = "";
     chatInput.value = "";
     autocompleteBox.innerHTML = "";
     autocompleteBox.style.display = "none";
+
+    toggleInitialQuestions(true); // Show initial questions
 });
 
-/*
-chatInput.addEventListener("input", async () => {
-    const query = chatInput.value.trim();
-    if (!query) {
-        autocompleteBox.innerHTML = "";
-        autocompleteBox.style.display = "none";
-        return;
-    }
-
-    try {
-        const res = await fetch(`/suggest?q=${encodeURIComponent(query)}`);
-        const suggestions = await res.json();
-        autocompleteBox.innerHTML = "";
-        if (!suggestions.length) {
-            autocompleteBox.style.display = "none";
-            return;
-        }
-        suggestions.forEach(s => {
-            const div = document.createElement("div");
-            div.className = "suggestion-item";
-            div.textContent = s;
-            div.onclick = () => {
-                chatInput.value = s;
-                autocompleteBox.innerHTML = "";
-                autocompleteBox.style.display = "none";
-                chatForm.requestSubmit();
-            };
-            autocompleteBox.appendChild(div);
-        });
-        autocompleteBox.style.display = "block";
-    } catch (err) {
-        autocompleteBox.innerHTML = "";
-        autocompleteBox.style.display = "none";
-    }
-});
-*/
 </script>
 {% endblock %}
