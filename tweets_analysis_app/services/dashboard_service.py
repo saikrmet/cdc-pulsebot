@@ -166,7 +166,7 @@ async def filter_dashboard_results(
             elif facet_type == "language":
                 language_counts.append(LanguageCountObj(language=value, count=new_count))
             elif facet_type == "linked_entities":
-                url = entity_url_map.get(value)
+                url = entity_url_map.get(value, "Not found")
                 entity_counts.append(EntityCountObj(name=value, url=url, count=new_count))
 
     sentiment_label_counts = [SentimentLabelCountObj(label=label, count=count) for label, count in sentiment_label_counts_map.items()]
